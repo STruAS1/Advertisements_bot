@@ -67,7 +67,7 @@ func HandleAddInput(update *tgbotapi.Update, ctx *context.Context, InputID strin
 			Value:       make(map[uint]string),
 			Edit:        true,
 			CitiesPages: make(map[uint]CitiesPage),
-			CurentPage:  1,
+			CurentPage:  0,
 		}
 	} else {
 		db.DB.Where(&models.AdvertisementInputs{ID: inputIDUint}).First(&Inputs)
@@ -1060,7 +1060,15 @@ func HandleAddInput(update *tgbotapi.Update, ctx *context.Context, InputID strin
 		case 0:
 			if update.CallbackQuery != nil {
 				CallbackQuery := strings.Split(update.CallbackQuery.Data, "_")
-				if CallbackQuery[0] == "AddInput" || update.CallbackQuery.Data == "Edit" {
+				if CallbackQuery[0] == "AddInput" || update.CallbackQuery.Data == "Edit" || update.CallbackQuery.Data == "nextCity" || update.CallbackQuery.Data == "backCity" {
+					if update.CallbackQuery.Data == "nextCity" && len(ActiveInput.CitiesPages) != int(ActiveInput.CurentPage) {
+						ActiveInput.CurentPage++
+						state.Data["ActiveInput"] = ActiveInput
+					}
+					if update.CallbackQuery.Data == "backCity" && int(ActiveInput.CurentPage) != 0 {
+						ActiveInput.CurentPage--
+						state.Data["ActiveInput"] = ActiveInput
+					}
 					var cities []models.Cities
 					db.DB.Order("title ASC").Find(&cities)
 
@@ -1086,7 +1094,37 @@ func HandleAddInput(update *tgbotapi.Update, ctx *context.Context, InputID strin
 
 						state.Data["ActiveInput"] = ActiveInput
 					}
-
+					currentPage := ActiveInput.CurentPage
+					page := ActiveInput.CitiesPages[currentPage].Cities
+					for i := 0; i < len(page); i += 2 {
+						if i+1 < len(page) {
+							rows = append(rows, tgbotapi.NewInlineKeyboardRow(
+								tgbotapi.NewInlineKeyboardButtonData(page[i].Title, "City_"+strconv.Itoa(int(page[i].Id))),
+								tgbotapi.NewInlineKeyboardButtonData(page[i+1].Title, "City_"+strconv.Itoa(int(page[i+1].Id))),
+							))
+						} else {
+							rows = append(rows, tgbotapi.NewInlineKeyboardRow(
+								tgbotapi.NewInlineKeyboardButtonData(page[i].Title, "City_"+strconv.Itoa(int(page[i].Id))),
+							))
+						}
+					}
+					if len(ActiveInput.CitiesPages) > int(currentPage) && currentPage != 0 {
+						rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("Назад", "backCity"), tgbotapi.NewInlineKeyboardButtonData("🔎 Поиск", "search"), tgbotapi.NewInlineKeyboardButtonData("Дальше", "nextCity")))
+					} else if len(ActiveInput.CitiesPages) > int(currentPage) && currentPage == 0 {
+						rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("🔎 Поиск", "search"), tgbotapi.NewInlineKeyboardButtonData("Дальше", "nextCity")))
+					} else if len(ActiveInput.CitiesPages) == int(currentPage) {
+						rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("Назад", "backCity"), tgbotapi.NewInlineKeyboardButtonData("🔎 Поиск", "search")))
+					}
+					rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("🚫 Отмена ", "back")))
+					text := "Выберите город из списка!"
+					msg := tgbotapi.NewEditMessageTextAndMarkup(
+						update.CallbackQuery.Message.Chat.ID,
+						state.MessageID,
+						text,
+						tgbotapi.NewInlineKeyboardMarkup(rows...),
+					)
+					msg.ParseMode = "HTML"
+					ctx.BotAPI.Send(msg)
 				}
 			}
 		}
