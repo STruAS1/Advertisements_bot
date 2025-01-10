@@ -26,7 +26,8 @@ func StartBot(cfg *config.Config) {
 		if update.Message == nil && update.CallbackQuery == nil {
 			continue
 		}
-
-		handlers.HandleUpdate(&update, ctx)
+		if (update.Message != nil && update.Message.Chat.Type == "private") || (update.CallbackQuery != nil && update.CallbackQuery.Message.Chat.Type == "private") {
+			handlers.HandleUpdate(&update, ctx)
+		}
 	}
 }
