@@ -25,8 +25,9 @@ type ActiveInput struct {
 }
 
 type CitiesRow struct {
-	Id    uint
-	Title string
+	Id       uint
+	Title    string
+	IsActive bool
 }
 
 type CitiesPage struct {
@@ -1060,7 +1061,7 @@ func HandleAddInput(update *tgbotapi.Update, ctx *context.Context, InputID strin
 		case 0:
 			if update.CallbackQuery != nil {
 				CallbackQuery := strings.Split(update.CallbackQuery.Data, "_")
-				if CallbackQuery[0] == "AddInput" || update.CallbackQuery.Data == "Edit" || update.CallbackQuery.Data == "nextCity" || update.CallbackQuery.Data == "backCity" {
+				if CallbackQuery[0] == "AddInput" || update.CallbackQuery.Data == "Edit" || update.CallbackQuery.Data == "nextCity" || update.CallbackQuery.Data == "backCity" || CallbackQuery[0] == "City" {
 					if update.CallbackQuery.Data == "nextCity" && len(ActiveInput.CitiesPages) != int(ActiveInput.CurentPage) {
 						ActiveInput.CurentPage++
 						state.Data["ActiveInput"] = ActiveInput
@@ -1084,7 +1085,7 @@ func HandleAddInput(update *tgbotapi.Update, ctx *context.Context, InputID strin
 							}
 
 							for _, city := range cities[start:end] {
-								_Cities = append(_Cities, CitiesRow{Id: city.ID, Title: city.Title})
+								_Cities = append(_Cities, CitiesRow{Id: city.ID, Title: city.Title, IsActive: false})
 							}
 
 							ActiveInput.CitiesPages[uint(page)] = CitiesPage{Cities: _Cities}
@@ -1094,17 +1095,36 @@ func HandleAddInput(update *tgbotapi.Update, ctx *context.Context, InputID strin
 
 						state.Data["ActiveInput"] = ActiveInput
 					}
+					if CallbackQuery[0] == "City" {
+						cytyArrayID, _ := strconv.Atoi(CallbackQuery[3])
+						pageID, _ := strconv.Atoi(CallbackQuery[2])
+						if ActiveInput.CitiesPages[uint(pageID)].Cities[cytyArrayID].IsActive {
+							ActiveInput.CitiesPages[uint(pageID)].Cities[cytyArrayID].IsActive = false
+						} else {
+							ActiveInput.CitiesPages[uint(pageID)].Cities[cytyArrayID].IsActive = true
+						}
+						state.Data["ActiveInput"] = ActiveInput
+					}
 					currentPage := ActiveInput.CurentPage
 					page := ActiveInput.CitiesPages[currentPage].Cities
 					for i := 0; i < len(page); i += 2 {
+						var titleI string = page[i].Title
+						var titleI1 string = page[i+1].Title
+						if page[i].IsActive {
+							titleI += "✅"
+						}
+						if page[i+1].IsActive {
+							titleI1 += "✅"
+						}
 						if i+1 < len(page) {
 							rows = append(rows, tgbotapi.NewInlineKeyboardRow(
-								tgbotapi.NewInlineKeyboardButtonData(page[i].Title, "City_"+strconv.Itoa(int(page[i].Id))),
-								tgbotapi.NewInlineKeyboardButtonData(page[i+1].Title, "City_"+strconv.Itoa(int(page[i+1].Id))),
+								tgbotapi.NewInlineKeyboardButtonData(titleI, "City_"+strconv.Itoa(int(page[i].Id))+"_"+strconv.Itoa(int(currentPage))+"_"+strconv.Itoa(int(i))),
+								tgbotapi.NewInlineKeyboardButtonData(titleI1, "City_"+strconv.Itoa(int(page[i+1].Id))+"_"+strconv.Itoa(int(currentPage))+"_"+strconv.Itoa(int(i+1))),
 							))
+
 						} else {
 							rows = append(rows, tgbotapi.NewInlineKeyboardRow(
-								tgbotapi.NewInlineKeyboardButtonData(page[i].Title, "City_"+strconv.Itoa(int(page[i].Id))),
+								tgbotapi.NewInlineKeyboardButtonData(titleI, "City_"+strconv.Itoa(int(page[i].Id))+"_"+strconv.Itoa(int(currentPage))+"_"+strconv.Itoa(int(i))),
 							))
 						}
 					}
