@@ -66,10 +66,25 @@ func handleLvl2(update *tgbotapi.Update, ctx *context.Context, userID int64) {
 func handleLvl3(update *tgbotapi.Update, ctx *context.Context, userID int64) {
 	state := context.GetUserState(userID, ctx)
 	if update.CallbackQuery != nil {
-		switch update.CallbackQuery.Data {
+		data := strings.Split(update.CallbackQuery.Data, "_")
+		switch data[0] {
 		case "back":
 			delete(state.Data, "ActiveInput")
 			HandleAddAds(update, ctx, "0")
+		case "BackToList":
+			ActiveInput, exsist := state.Data["ActiveInput"].(ActiveInput)
+			if exsist {
+				ActiveInput.ActiveStep = 0
+				state.Data["ActiveInput"] = ActiveInput
+				HandleAddInput(update, ctx, strconv.Itoa(int(ActiveInput.ID)))
+			}
+		case "City":
+			ActiveInput, exsist := state.Data["ActiveInput"].(ActiveInput)
+			if exsist {
+				ActiveInput.ActiveStep = 0
+				state.Data["ActiveInput"] = ActiveInput
+				HandleAddInput(update, ctx, strconv.Itoa(int(ActiveInput.ID)))
+			}
 		default:
 			ActiveInput, exsist := state.Data["ActiveInput"].(ActiveInput)
 			if exsist {
