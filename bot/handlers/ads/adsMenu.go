@@ -6,6 +6,7 @@ import (
 	"tgbotBARAHOLKA/bot/context"
 	"tgbotBARAHOLKA/db"
 	"tgbotBARAHOLKA/db/models"
+	"time"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
@@ -28,12 +29,27 @@ type AdsPhoto struct {
 	IsEdit    bool
 }
 
+type pageHistoryAds struct {
+	Rows []rowAds
+}
+
+type rowAds struct {
+	ID        uint
+	Text      string
+	ImageID   string
+	Status    uint
+	CreatedAt time.Time
+}
+
 func HandleMenu(update *tgbotapi.Update, ctx *context.Context) {
 	userID := update.CallbackQuery.From.ID
 	state := context.GetUserState(userID, ctx)
 	inlineKeyboard := tgbotapi.NewInlineKeyboardMarkup(
 		[]tgbotapi.InlineKeyboardButton{
 			tgbotapi.NewInlineKeyboardButtonData("Добавить объявление", "AddAds"),
+		},
+		[]tgbotapi.InlineKeyboardButton{
+			tgbotapi.NewInlineKeyboardButtonData("Мои объявления", "AdsHistory"),
 		},
 		[]tgbotapi.InlineKeyboardButton{
 			tgbotapi.NewInlineKeyboardButtonData("Назад", "StartMenu"),
@@ -44,7 +60,79 @@ func HandleMenu(update *tgbotapi.Update, ctx *context.Context) {
 	ctx.BotAPI.Send(msg)
 
 }
+func HandleSelectADSHistory(update *tgbotapi.Update, ctx *context.Context) {
+	userID := update.CallbackQuery.From.ID
+	state := context.GetUserState(userID, ctx)
+	context.UpdateUserLevel(userID, ctx, 8)
+	var ads []models.Advertisement
+	db.DB.Where(models.Advertisement{UserID: uint(userID)}).Find(&ads)
+	pageSize := 10
+	_, exist := state.Data["AdsHistory"]
+	var rows [][]tgbotapi.InlineKeyboardButton
+	if !exist {
+		state.Data["AdsHistoryPage"] = uint(0)
+		state.Data["AdsHistory"] = map[uint]pageHistoryAds{}
+		pages := state.Data["AdsHistory"].(map[uint]pageHistoryAds)
+		for page := 0; page < (len(ads)+pageSize-1)/pageSize; page++ {
+			var _Ads []rowAds
+			start := page * pageSize
+			end := start + pageSize
+			if end > len(ads) {
+				end = len(ads)
+			}
+			for _, ad := range ads[start:end] {
+				_Ads = append(_Ads, rowAds{ID: ad.ID, Text: ad.Text, Status: ad.Status, CreatedAt: ad.CreatedAt})
+			}
 
+			pages[uint(page)] = pageHistoryAds{Rows: _Ads}
+
+		}
+		state.Data["ActiveInput"] = pages
+	}
+	pages := state.Data["AdsHistory"].(map[uint]pageHistoryAds)
+	currentPage := state.Data["AdsHistoryPage"].(uint)
+	page := pages[currentPage].Rows
+	for i := 0; i < len(page); i += 2 {
+		var titleI string = page[i].CreatedAt.UTC().Format("2000-01-02")
+		switch page[i].Status {
+		case 0:
+			titleI += " ⏳"
+		case 1:
+			titleI += " ✅"
+		case 2:
+			titleI += " ❌"
+		}
+		if i+1 < len(page) {
+			var titleI1 string = page[i].CreatedAt.UTC().Format("2000-01-02")
+			switch page[i+1].Status {
+			case 0:
+				titleI1 += " ⏳"
+			case 1:
+				titleI1 += " ✅"
+			case 2:
+				titleI1 += " ❌"
+			}
+			rows = append(rows, tgbotapi.NewInlineKeyboardRow(
+				tgbotapi.NewInlineKeyboardButtonData(titleI, "Ad_"+strconv.Itoa(int(page[i].ID))+"_"+strconv.Itoa(int(currentPage))+"_"+strconv.Itoa(int(i))),
+				tgbotapi.NewInlineKeyboardButtonData(titleI1, "City_"+strconv.Itoa(int(page[i+1].ID))+"_"+strconv.Itoa(int(currentPage))+"_"+strconv.Itoa(int(i+1))),
+			))
+
+		} else {
+			rows = append(rows, tgbotapi.NewInlineKeyboardRow(
+				tgbotapi.NewInlineKeyboardButtonData(titleI, "City_"+strconv.Itoa(int(page[i].ID))+"_"+strconv.Itoa(int(currentPage))+"_"+strconv.Itoa(int(i))),
+			))
+		}
+	}
+	msg := tgbotapi.NewEditMessageTextAndMarkup(
+		update.CallbackQuery.Message.Chat.ID,
+		state.MessageID,
+		"Выберете тип объявления",
+		tgbotapi.NewInlineKeyboardMarkup(rows...),
+	)
+	msg.ParseMode = "HTML"
+	ctx.BotAPI.Send(msg)
+
+}
 func HandleSelectADS(update *tgbotapi.Update, ctx *context.Context) {
 	userID := update.CallbackQuery.From.ID
 	state := context.GetUserState(userID, ctx)
@@ -68,7 +156,7 @@ func HandleSelectADS(update *tgbotapi.Update, ctx *context.Context) {
 		"Выберете тип объявления",
 		tgbotapi.NewInlineKeyboardMarkup(rows...),
 	)
-
+	msg.ParseMode = "HTML"
 	ctx.BotAPI.Send(msg)
 }
 
@@ -184,7 +272,23 @@ func HandleAddAds(update *tgbotapi.Update, ctx *context.Context, typeID string) 
 	msg.ParseMode = "HTML"
 	ctx.BotAPI.Send(msg)
 }
-
+func HandleBackAds(update *tgbotapi.Update, ctx *context.Context) {
+	userID := update.CallbackQuery.From.ID
+	state := context.GetUserState(userID, ctx)
+	text := "Вы уверены что хотите уйти? всё что вы ввели не сохранится"
+	context.UpdateUserLevel(userID, ctx, 7)
+	var rows [][]tgbotapi.InlineKeyboardButton
+	rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("Назад", "back")))
+	rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("🗑️ Удалить", "Delete")))
+	msg := tgbotapi.NewEditMessageTextAndMarkup(
+		update.CallbackQuery.Message.Chat.ID,
+		state.MessageID,
+		text,
+		tgbotapi.NewInlineKeyboardMarkup(rows...),
+	)
+	msg.ParseMode = "HTML"
+	ctx.BotAPI.Send(msg)
+}
 func HandleSaveAds(update *tgbotapi.Update, ctx *context.Context) {
 	userID := update.CallbackQuery.From.ID
 	state := context.GetUserState(userID, ctx)
@@ -231,9 +335,9 @@ func HandleSaveAds(update *tgbotapi.Update, ctx *context.Context) {
 	var User models.User
 	db.DB.Where(&models.User{TelegramID: userID}).First(&User)
 	if photo.Activate {
-		db.DB.Save(&models.Advertisement{UserID: uint(User.ID), Text: messageText, ImageID: photo.ID})
+		db.DB.Save(&models.Advertisement{UserID: uint(User.ID), Text: messageText, ImageID: photo.ID, Status: 0})
 	} else {
-		db.DB.Save(&models.Advertisement{UserID: uint(User.ID), Text: messageText})
+		db.DB.Save(&models.Advertisement{UserID: uint(User.ID), Text: messageText, Status: 0})
 	}
 	delete(state.Data, "AdsInputs")
 	delete(state.Data, "AdsPhoto")

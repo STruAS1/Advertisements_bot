@@ -14,7 +14,7 @@ func Handle(update *tgbotapi.Update, ctx *context.Context, userID int64) {
 	case 1:
 		handleLvl1(update, ctx)
 	case 2:
-		handleLvl2(update, ctx, userID)
+		handleLvl2(update, ctx)
 	case 3:
 		handleLvl3(update, ctx, userID)
 	case 4:
@@ -23,6 +23,8 @@ func Handle(update *tgbotapi.Update, ctx *context.Context, userID int64) {
 		handelLvl5(update, ctx, userID)
 	case 6:
 		handelLvl6(update, ctx)
+	case 7:
+		handelLvl7(update, ctx, userID)
 	}
 }
 
@@ -40,15 +42,13 @@ func handleLvl1(update *tgbotapi.Update, ctx *context.Context) {
 	}
 }
 
-func handleLvl2(update *tgbotapi.Update, ctx *context.Context, userID int64) {
+func handleLvl2(update *tgbotapi.Update, ctx *context.Context) {
 	if update.CallbackQuery != nil {
 		data := strings.Split(update.CallbackQuery.Data, "_")
 		if len(data) == 1 {
 			switch data[0] {
 			case "back":
-				state := context.GetUserState(userID, ctx)
-				delete(state.Data, "AdsInputs")
-				HandleSelectADS(update, ctx)
+				HandleBackAds(update, ctx)
 			case "AddPhoto":
 				HandleAddPhoto(update, ctx)
 			case "preViwe":
@@ -161,5 +161,21 @@ func handelLvl6(update *tgbotapi.Update, ctx *context.Context) {
 		case "back":
 			HandleAddAds(update, ctx, "0")
 		}
+	}
+}
+
+func handelLvl7(update *tgbotapi.Update, ctx *context.Context, userId int64) {
+	if update.CallbackQuery != nil {
+		switch update.CallbackQuery.Data {
+		case "back":
+			HandleAddAds(update, ctx, "0")
+		case "Delete":
+			state := context.GetUserState(userId, ctx)
+			delete(state.Data, "AdsInputs")
+			delete(state.Data, "AdsPhoto")
+			delete(state.Data, "ActivType")
+			HandleMenu(update, ctx)
+		}
+
 	}
 }
