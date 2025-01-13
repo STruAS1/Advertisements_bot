@@ -50,6 +50,8 @@ func HandleUpdate(update *tgbotapi.Update, ctx *context.Context) {
 				start.HandleStartCommand(update, ctx)
 			case "AddAds":
 				ads.HandleSelectADS(update, ctx)
+			case "AdsHistory":
+				ads.HandleSelectADSHistory(update, ctx)
 			}
 
 		}

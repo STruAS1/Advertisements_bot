@@ -25,6 +25,10 @@ func Handle(update *tgbotapi.Update, ctx *context.Context, userID int64) {
 		handelLvl6(update, ctx)
 	case 7:
 		handelLvl7(update, ctx, userID)
+	case 8:
+		handelLvl8(update, ctx, userID)
+	case 9:
+		handelLvl9(update, ctx)
 	}
 }
 
@@ -177,5 +181,41 @@ func handelLvl7(update *tgbotapi.Update, ctx *context.Context, userId int64) {
 			HandleMenu(update, ctx)
 		}
 
+	}
+}
+
+func handelLvl8(update *tgbotapi.Update, ctx *context.Context, userID int64) {
+	if update.CallbackQuery != nil {
+		state := context.GetUserState(userID, ctx)
+		switch strings.Split(update.CallbackQuery.Data, "_")[0] {
+		case "back":
+			HandleMenu(update, ctx)
+		case "backAds":
+			pages := state.Data["AdsHistory"].(map[uint]pageHistoryAds)
+			ActivePage := state.Data["AdsHistoryPage"].(uint)
+			if len(pages)-1 != int(ActivePage) {
+				ActivePage--
+				state.Data["AdsHistoryPage"] = ActivePage
+				HandleSelectADSHistory(update, ctx)
+			}
+		case "nextAds":
+			ActivePage := state.Data["AdsHistoryPage"].(uint)
+			if int(ActivePage) != 0 {
+				ActivePage++
+				state.Data["AdsHistoryPage"] = ActivePage
+				HandleSelectADSHistory(update, ctx)
+			}
+		case "Ad":
+			HandleViwerAdsHistory(update, ctx)
+		}
+	}
+}
+
+func handelLvl9(update *tgbotapi.Update, ctx *context.Context) {
+	if update.CallbackQuery != nil {
+		switch update.CallbackQuery.Data {
+		case "back":
+			HandleSelectADSHistory(update, ctx)
+		}
 	}
 }

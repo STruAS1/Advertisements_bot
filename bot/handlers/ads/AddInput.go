@@ -1204,7 +1204,7 @@ func HandleAddInput(update *tgbotapi.Update, ctx *context.Context, InputID strin
 						rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("« Назад", "backCity"), tgbotapi.NewInlineKeyboardButtonData("🔎 Поиск", "search"), tgbotapi.NewInlineKeyboardButtonData("Дальше »", "nextCity")))
 					} else if len(ActiveInput.CitiesPages)-1 > int(currentPage) && currentPage == 0 {
 						rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("🔎 Поиск", "search"), tgbotapi.NewInlineKeyboardButtonData("Дальше »", "nextCity")))
-					} else if len(ActiveInput.CitiesPages)-1 == int(currentPage) {
+					} else if len(ActiveInput.CitiesPages)-1 == int(currentPage) && len(ActiveInput.CitiesPages) != 1 {
 						rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("« Назад", "backCity"), tgbotapi.NewInlineKeyboardButtonData("🔎 Поиск", "search")))
 					}
 					rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("📋 Сохранить", "Save")))

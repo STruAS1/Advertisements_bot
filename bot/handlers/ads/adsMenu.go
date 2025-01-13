@@ -3,6 +3,7 @@ package ads
 import (
 	"sort"
 	"strconv"
+	"strings"
 	"tgbotBARAHOLKA/bot/context"
 	"tgbotBARAHOLKA/db"
 	"tgbotBARAHOLKA/db/models"
@@ -64,14 +65,17 @@ func HandleSelectADSHistory(update *tgbotapi.Update, ctx *context.Context) {
 	userID := update.CallbackQuery.From.ID
 	state := context.GetUserState(userID, ctx)
 	context.UpdateUserLevel(userID, ctx, 8)
-	var ads []models.Advertisement
-	db.DB.Where(models.Advertisement{UserID: uint(userID)}).Find(&ads)
-	pageSize := 10
 	_, exist := state.Data["AdsHistory"]
 	var rows [][]tgbotapi.InlineKeyboardButton
 	if !exist {
+		var ads []models.Advertisement
+		db.DB.Joins(`JOIN "Users" ON "Users"."id" = "Advertisements"."user_id"`).
+			Where(`"Users"."telegram_id" = ?`, userID).
+			Find(&ads)
+
+		pageSize := 10
 		state.Data["AdsHistoryPage"] = uint(0)
-		state.Data["AdsHistory"] = map[uint]pageHistoryAds{}
+		state.Data["AdsHistory"] = make(map[uint]pageHistoryAds)
 		pages := state.Data["AdsHistory"].(map[uint]pageHistoryAds)
 		for page := 0; page < (len(ads)+pageSize-1)/pageSize; page++ {
 			var _Ads []rowAds
@@ -93,7 +97,7 @@ func HandleSelectADSHistory(update *tgbotapi.Update, ctx *context.Context) {
 	currentPage := state.Data["AdsHistoryPage"].(uint)
 	page := pages[currentPage].Rows
 	for i := 0; i < len(page); i += 2 {
-		var titleI string = page[i].CreatedAt.UTC().Format("2000-01-02")
+		var titleI string = page[i].CreatedAt.UTC().Format("2006-01-02")
 		switch page[i].Status {
 		case 0:
 			titleI += " ⏳"
@@ -103,7 +107,7 @@ func HandleSelectADSHistory(update *tgbotapi.Update, ctx *context.Context) {
 			titleI += " ❌"
 		}
 		if i+1 < len(page) {
-			var titleI1 string = page[i].CreatedAt.UTC().Format("2000-01-02")
+			var titleI1 string = page[i+1].CreatedAt.UTC().Format("2006-01-02")
 			switch page[i+1].Status {
 			case 0:
 				titleI1 += " ⏳"
@@ -114,15 +118,23 @@ func HandleSelectADSHistory(update *tgbotapi.Update, ctx *context.Context) {
 			}
 			rows = append(rows, tgbotapi.NewInlineKeyboardRow(
 				tgbotapi.NewInlineKeyboardButtonData(titleI, "Ad_"+strconv.Itoa(int(page[i].ID))+"_"+strconv.Itoa(int(currentPage))+"_"+strconv.Itoa(int(i))),
-				tgbotapi.NewInlineKeyboardButtonData(titleI1, "City_"+strconv.Itoa(int(page[i+1].ID))+"_"+strconv.Itoa(int(currentPage))+"_"+strconv.Itoa(int(i+1))),
+				tgbotapi.NewInlineKeyboardButtonData(titleI1, "Ad_"+strconv.Itoa(int(page[i+1].ID))+"_"+strconv.Itoa(int(currentPage))+"_"+strconv.Itoa(int(i+1))),
 			))
 
 		} else {
 			rows = append(rows, tgbotapi.NewInlineKeyboardRow(
-				tgbotapi.NewInlineKeyboardButtonData(titleI, "City_"+strconv.Itoa(int(page[i].ID))+"_"+strconv.Itoa(int(currentPage))+"_"+strconv.Itoa(int(i))),
+				tgbotapi.NewInlineKeyboardButtonData(titleI, "Ad_"+strconv.Itoa(int(page[i].ID))+"_"+strconv.Itoa(int(currentPage))+"_"+strconv.Itoa(int(i))),
 			))
 		}
 	}
+	if len(pages)-1 > int(currentPage) && currentPage != 0 {
+		rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("«", "backAds"), tgbotapi.NewInlineKeyboardButtonData("»", "nextAds")))
+	} else if len(pages)-1 > int(currentPage) && currentPage == 0 {
+		rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("»", "nextAds")))
+	} else if len(pages)-1 == int(currentPage) && len(pages) != 1 {
+		rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("«", "backAds")))
+	}
+	rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("Назад", "back")))
 	msg := tgbotapi.NewEditMessageTextAndMarkup(
 		update.CallbackQuery.Message.Chat.ID,
 		state.MessageID,
@@ -131,7 +143,26 @@ func HandleSelectADSHistory(update *tgbotapi.Update, ctx *context.Context) {
 	)
 	msg.ParseMode = "HTML"
 	ctx.BotAPI.Send(msg)
-
+}
+func HandleViwerAdsHistory(update *tgbotapi.Update, ctx *context.Context) {
+	userID := update.CallbackQuery.From.ID
+	state := context.GetUserState(userID, ctx)
+	context.UpdateUserLevel(userID, ctx, 9)
+	pages := state.Data["AdsHistory"].(map[uint]pageHistoryAds)
+	Indexes := strings.Split(update.CallbackQuery.Data, "_")
+	pageIndex, _ := strconv.Atoi(Indexes[2])
+	adsIndex, _ := strconv.Atoi(Indexes[3])
+	ads := pages[uint(pageIndex)].Rows[adsIndex]
+	var rows [][]tgbotapi.InlineKeyboardButton
+	rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("Назад", "back")))
+	msg := tgbotapi.NewEditMessageTextAndMarkup(
+		update.CallbackQuery.Message.Chat.ID,
+		state.MessageID,
+		ads.Text,
+		tgbotapi.NewInlineKeyboardMarkup(rows...),
+	)
+	msg.ParseMode = "HTML"
+	ctx.BotAPI.Send(msg)
 }
 func HandleSelectADS(update *tgbotapi.Update, ctx *context.Context) {
 	userID := update.CallbackQuery.From.ID
