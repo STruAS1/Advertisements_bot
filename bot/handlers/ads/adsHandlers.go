@@ -28,7 +28,7 @@ func Handle(update *tgbotapi.Update, ctx *context.Context, userID int64) {
 	case 8:
 		handelLvl8(update, ctx, userID)
 	case 9:
-		handelLvl9(update, ctx)
+		handelLvl9(update, ctx, userID)
 	}
 }
 
@@ -206,16 +206,31 @@ func handelLvl8(update *tgbotapi.Update, ctx *context.Context, userID int64) {
 				HandleSelectADSHistory(update, ctx)
 			}
 		case "Ad":
+			delete(state.Data, "AdsHistoryPage")
+			delete(state.Data, "AdsHistory")
 			HandleViwerAdsHistory(update, ctx)
 		}
 	}
 }
 
-func handelLvl9(update *tgbotapi.Update, ctx *context.Context) {
+func handelLvl9(update *tgbotapi.Update, ctx *context.Context, userID int64) {
 	if update.CallbackQuery != nil {
 		switch update.CallbackQuery.Data {
 		case "back":
-			HandleSelectADSHistory(update, ctx)
+			state := context.GetUserState(userID, ctx)
+			if state.Data["MessageIdPhoto"] == 0 {
+				delete(state.Data, "MessageIdPhoto")
+				HandleSelectADSHistory(update, ctx)
+			} else {
+				messageId := state.Data["MessageIdPhoto"].(int)
+				deleteMsg := tgbotapi.DeleteMessageConfig{
+					ChatID:    userID,
+					MessageID: messageId,
+				}
+				ctx.BotAPI.Send(deleteMsg)
+				delete(state.Data, "MessageIdPhoto")
+				HandleSelectADSHistory(update, ctx)
+			}
 		}
 	}
 }

@@ -85,7 +85,7 @@ func HandleSelectADSHistory(update *tgbotapi.Update, ctx *context.Context) {
 				end = len(ads)
 			}
 			for _, ad := range ads[start:end] {
-				_Ads = append(_Ads, rowAds{ID: ad.ID, Text: ad.Text, Status: ad.Status, CreatedAt: ad.CreatedAt})
+				_Ads = append(_Ads, rowAds{ID: ad.ID, Text: ad.Text, Status: ad.Status, CreatedAt: ad.CreatedAt, ImageID: ad.ImageID})
 			}
 
 			pages[uint(page)] = pageHistoryAds{Rows: _Ads}
@@ -154,15 +154,35 @@ func HandleViwerAdsHistory(update *tgbotapi.Update, ctx *context.Context) {
 	adsIndex, _ := strconv.Atoi(Indexes[3])
 	ads := pages[uint(pageIndex)].Rows[adsIndex]
 	var rows [][]tgbotapi.InlineKeyboardButton
+	if ads.ImageID == "" {
+		state.Data["MessageIdPhoto"] = 0
+		rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("Назад", "back")))
+		msg := tgbotapi.NewEditMessageTextAndMarkup(
+			update.CallbackQuery.Message.Chat.ID,
+			state.MessageID,
+			ads.Text,
+			tgbotapi.NewInlineKeyboardMarkup(rows...),
+		)
+		msg.ParseMode = "HTML"
+		ctx.BotAPI.Send(msg)
+		return
+	}
+	deleteMsg := tgbotapi.DeleteMessageConfig{
+		ChatID:    userID,
+		MessageID: state.MessageID,
+	}
+	ctx.BotAPI.Send(deleteMsg)
+	photoConfig := tgbotapi.NewPhoto(userID, tgbotapi.FileID(ads.ImageID))
+	message, _ := ctx.BotAPI.Send(photoConfig)
+	state.Data["MessageIdPhoto"] = message.MessageID
 	rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("Назад", "back")))
-	msg := tgbotapi.NewEditMessageTextAndMarkup(
+	msg := tgbotapi.NewMessage(
 		update.CallbackQuery.Message.Chat.ID,
-		state.MessageID,
 		ads.Text,
-		tgbotapi.NewInlineKeyboardMarkup(rows...),
 	)
+	msg.ReplyMarkup = tgbotapi.NewInlineKeyboardMarkup(rows...)
 	msg.ParseMode = "HTML"
-	ctx.BotAPI.Send(msg)
+	ctx.SendMessage(msg)
 }
 func HandleSelectADS(update *tgbotapi.Update, ctx *context.Context) {
 	userID := update.CallbackQuery.From.ID
