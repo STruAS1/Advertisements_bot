@@ -4,6 +4,7 @@ import (
 	"log"
 	"tgbotBARAHOLKA/bot/context"
 	"tgbotBARAHOLKA/bot/handlers/ads"
+	"tgbotBARAHOLKA/bot/handlers/profile"
 	"tgbotBARAHOLKA/bot/handlers/start"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
@@ -52,6 +53,8 @@ func HandleUpdate(update *tgbotapi.Update, ctx *context.Context) {
 				ads.HandleSelectADS(update, ctx)
 			case "AdsHistory":
 				ads.HandleSelectADSHistory(update, ctx)
+			case "profile":
+				profile.HandleProfile(update, ctx)
 			}
 
 		}

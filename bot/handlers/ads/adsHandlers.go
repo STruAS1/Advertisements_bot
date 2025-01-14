@@ -189,6 +189,8 @@ func handelLvl8(update *tgbotapi.Update, ctx *context.Context, userID int64) {
 		state := context.GetUserState(userID, ctx)
 		switch strings.Split(update.CallbackQuery.Data, "_")[0] {
 		case "back":
+			delete(state.Data, "AdsHistoryPage")
+			delete(state.Data, "AdsHistory")
 			HandleMenu(update, ctx)
 		case "backAds":
 			pages := state.Data["AdsHistory"].(map[uint]pageHistoryAds)
@@ -206,8 +208,6 @@ func handelLvl8(update *tgbotapi.Update, ctx *context.Context, userID int64) {
 				HandleSelectADSHistory(update, ctx)
 			}
 		case "Ad":
-			delete(state.Data, "AdsHistoryPage")
-			delete(state.Data, "AdsHistory")
 			HandleViwerAdsHistory(update, ctx)
 		}
 	}

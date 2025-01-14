@@ -71,6 +71,7 @@ func HandleSelectADSHistory(update *tgbotapi.Update, ctx *context.Context) {
 		var ads []models.Advertisement
 		db.DB.Joins(`JOIN "Users" ON "Users"."id" = "Advertisements"."user_id"`).
 			Where(`"Users"."telegram_id" = ?`, userID).
+			Order(`"Advertisements"."created_at" DESC`).
 			Find(&ads)
 
 		pageSize := 10
@@ -91,7 +92,7 @@ func HandleSelectADSHistory(update *tgbotapi.Update, ctx *context.Context) {
 			pages[uint(page)] = pageHistoryAds{Rows: _Ads}
 
 		}
-		state.Data["ActiveInput"] = pages
+		state.Data["AdsHistory"] = pages
 	}
 	pages := state.Data["AdsHistory"].(map[uint]pageHistoryAds)
 	currentPage := state.Data["AdsHistoryPage"].(uint)

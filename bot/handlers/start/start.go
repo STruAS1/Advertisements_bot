@@ -29,19 +29,16 @@ func HandleStartCommand(update *tgbotapi.Update, ctx *context.Context) {
 	result := db.DB.Where("telegram_id = ?", userID).First(&user)
 	inlineKeyboard := tgbotapi.NewInlineKeyboardMarkup(
 		[]tgbotapi.InlineKeyboardButton{
-			tgbotapi.NewInlineKeyboardButtonData("Объявление", "adsMenu"),
+			tgbotapi.NewInlineKeyboardButtonData("Объявление", "adsMenu"), tgbotapi.NewInlineKeyboardButtonData("Профиль", "profile"),
 		},
-		// []tgbotapi.InlineKeyboardButton{
-		// 	tgbotapi.NewInlineKeyboardButtonData("Подписался", "cehk_sub"),
-		// },
 	)
 	if result.Error == nil {
 		if state.MessageID != 0 {
-			msg := tgbotapi.NewEditMessageTextAndMarkup(userID, state.MessageID, "Привет!.", inlineKeyboard)
+			msg := tgbotapi.NewEditMessageTextAndMarkup(userID, state.MessageID, "Привет!", inlineKeyboard)
 			ctx.BotAPI.Send(msg)
 
 		} else {
-			msg := tgbotapi.NewMessage(userID, "Привет!.")
+			msg := tgbotapi.NewMessage(userID, "Привет!")
 			msg.ReplyMarkup = inlineKeyboard
 			ctx.SendMessage(msg)
 		}
