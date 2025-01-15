@@ -26,7 +26,7 @@ func HandleProfile(update *tgbotapi.Update, ctx *context.Context) {
 	db.DB.Model(&models.Advertisement{}).Where(&models.Advertisement{UserID: user.ID, Status: 1}).Count(&AprovedCounOFAds)
 	text += "\n\n<b>Всего объявлений</b>: " + strconv.Itoa(int(CountOfAds))
 	text += "\n<b>Опубликовано объявлений</b>: " + strconv.Itoa(int(AprovedCounOFAds))
-	rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("Пополнить баланс", "+balance")))
+	rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonURL("Пополнить баланс", "https://test.com")))
 	rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("Назад", "StartMenu")))
 	msg := tgbotapi.NewEditMessageTextAndMarkup(
 		userID,
