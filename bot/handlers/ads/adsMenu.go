@@ -38,7 +38,7 @@ type rowAds struct {
 	ID        uint
 	Text      string
 	ImageID   string
-	Status    uint
+	Status    uint8
 	CreatedAt time.Time
 }
 

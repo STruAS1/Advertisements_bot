@@ -1,0 +1,105 @@
+package adsSetingsRoutes
+
+import (
+	"encoding/json"
+	"net/http"
+	"strconv"
+	"tgbotBARAHOLKA/db"
+	"tgbotBARAHOLKA/db/models"
+
+	"github.com/go-chi/chi/v5"
+)
+
+type TypeRequest struct {
+	IsFree bool   `json:"is_free"`
+	Cost   uint   `json:"Cost"`
+	Name   string `json:"name"`
+}
+
+func UpdateAdvertisementType(r chi.Router) {
+	r.Put("/Type", func(w http.ResponseWriter, r *http.Request) {
+		queryParams := r.URL.Query()
+		idStr := queryParams.Get("ID")
+		id, err := strconv.ParseUint(idStr, 10, 32)
+		if err != nil {
+			http.Error(w, "Invalid ID", http.StatusBadRequest)
+			return
+		}
+
+		var updateData TypeRequest
+		if err := json.NewDecoder(r.Body).Decode(&updateData); err != nil {
+			http.Error(w, "Invalid JSON", http.StatusBadRequest)
+			return
+		}
+
+		if err := db.DB.Model(&models.AdvertisementType{}).
+			Where("id = ?", uint(id)).
+			Updates(map[string]interface{}{
+				"is_free": updateData.IsFree,
+				"name":    updateData.Name,
+				"Cost":    updateData.Cost,
+			}).Error; err != nil {
+			writeJSON(w, http.StatusInternalServerError, ErrorResponse{
+				Message: "Failed to update record",
+			})
+			return
+		}
+
+		writeJSON(w, http.StatusOK, map[string]string{
+			"message": "Ok",
+		})
+	})
+}
+
+func GetAdvertisementTypeInfo(r chi.Router) {
+	r.Get("/Type", func(w http.ResponseWriter, r *http.Request) {
+		queryParams := r.URL.Query()
+		idStr := queryParams.Get("ID")
+		id, err := strconv.ParseUint(idStr, 10, 32)
+		if err != nil {
+			http.Error(w, "Invalid ID: must be a positive integer", http.StatusBadRequest)
+			return
+		}
+
+		var advType models.AdvertisementType
+		if err := db.DB.Where(models.AdvertisementType{ID: uint(id)}).First(&advType).Error; err != nil {
+			writeJSON(w, http.StatusNotFound, ErrorResponse{
+				Message: "Record not found",
+			})
+			return
+		}
+
+		writeJSON(w, http.StatusOK, SuccessResponse{
+			Message: "oK",
+			Data:    advType,
+		})
+	})
+}
+
+func CreateAdvertisementType(r chi.Router) {
+	r.Post("/Type", func(w http.ResponseWriter, r *http.Request) {
+		var createData TypeRequest
+		if err := json.NewDecoder(r.Body).Decode(&createData); err != nil {
+			http.Error(w, "Invalid JSON", http.StatusBadRequest)
+			return
+		}
+
+		newType := models.AdvertisementType{
+			IsFree: createData.IsFree,
+			Name:   createData.Name,
+			Cost:   createData.Cost,
+		}
+
+		if err := db.DB.Create(&newType).Error; err != nil {
+			writeJSON(w, http.StatusInternalServerError, ErrorResponse{
+				Message: "Failed to create new type",
+			})
+			return
+		}
+
+		writeJSON(w, http.StatusCreated, SuccessResponse{
+			Message: "OK",
+			Data:    newType,
+		})
+	})
+}

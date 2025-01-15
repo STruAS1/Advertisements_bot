@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"tgbotBARAHOLKA/backend"
 	"tgbotBARAHOLKA/bot"
 	"tgbotBARAHOLKA/config"
 	"tgbotBARAHOLKA/db"
@@ -12,7 +13,7 @@ func main() {
 	cfg := config.LoadConfig()
 
 	db.Connect(cfg)
-
+	go backend.StartBackend()
 	go func() {
 		for {
 			defer func() {
