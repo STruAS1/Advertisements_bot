@@ -5,7 +5,9 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+
 	"tgbotBARAHOLKA/bot/context"
+	"tgbotBARAHOLKA/config"
 	"tgbotBARAHOLKA/db"
 	"tgbotBARAHOLKA/db/models"
 	"tgbotBARAHOLKA/utilits"
@@ -989,7 +991,7 @@ func HandleAddInput(update *tgbotapi.Update, ctx *context.Context, InputID strin
 				if CallbackQuery[0] == "AddInput" || update.CallbackQuery.Data == "Edit" {
 					ActiveInput.ActiveStep = 1
 					state.Data["ActiveInput"] = ActiveInput
-					options := strings.Split(Inputs.Options, " ")
+					options := strings.Split(Inputs.Options, "_|_")
 					for i := 0; i < len(options); i += 2 {
 						var row []tgbotapi.InlineKeyboardButton
 						button1 := tgbotapi.NewInlineKeyboardButtonData(options[i], "OPTIONS_"+options[i])
@@ -1165,8 +1167,8 @@ func HandleAddInput(update *tgbotapi.Update, ctx *context.Context, InputID strin
 								}
 							}
 						} else {
-							if len(ActiveInput.ActiveCities) >= 10 {
-								alert := tgbotapi.NewCallbackWithAlert(update.CallbackQuery.ID, "Вы не можете добавить больше 10 городов!")
+							if len(ActiveInput.ActiveCities) >= int(config.GlobalSettings.City.MaxCountOfCity) {
+								alert := tgbotapi.NewCallbackWithAlert(update.CallbackQuery.ID, "Вы не можете добавить больше городов!")
 								ctx.BotAPI.Request(alert)
 							} else {
 								ActiveCity := ActiveInput.CitiesPages[uint(pageID)].Cities[cytyArrayID]

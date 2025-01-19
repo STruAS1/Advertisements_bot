@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"strings"
 	"tgbotBARAHOLKA/bot/context"
+	"tgbotBARAHOLKA/config"
 	"tgbotBARAHOLKA/db"
 	"tgbotBARAHOLKA/db/models"
 	"time"
@@ -57,7 +58,7 @@ func HandleMenu(update *tgbotapi.Update, ctx *context.Context) {
 		},
 	)
 	context.UpdateUserLevel(userID, ctx, 0)
-	msg := tgbotapi.NewEditMessageTextAndMarkup(userID, state.MessageID, "Меню объявлений", inlineKeyboard)
+	msg := tgbotapi.NewEditMessageTextAndMarkup(userID, state.MessageID, config.GlobalSettings.Texts.AddsMenu, inlineKeyboard)
 	ctx.BotAPI.Send(msg)
 
 }
@@ -139,7 +140,7 @@ func HandleSelectADSHistory(update *tgbotapi.Update, ctx *context.Context) {
 	msg := tgbotapi.NewEditMessageTextAndMarkup(
 		update.CallbackQuery.Message.Chat.ID,
 		state.MessageID,
-		"Выберете тип объявления",
+		"История объявлений",
 		tgbotapi.NewInlineKeyboardMarkup(rows...),
 	)
 	msg.ParseMode = "HTML"
@@ -188,7 +189,26 @@ func HandleViwerAdsHistory(update *tgbotapi.Update, ctx *context.Context) {
 func HandleSelectADS(update *tgbotapi.Update, ctx *context.Context) {
 	userID := update.CallbackQuery.From.ID
 	state := context.GetUserState(userID, ctx)
+	// var Ad models.Advertisement
+	// var user models.User
+	// db.DB.Where("telegram_id = ?", userID).First(&user)
 
+	// threeHoursAgo := time.Now().Add(-3 * time.Hour)
+	// db.DB.Model(&models.Advertisement{}).
+	// 	Where("user_id = ? AND status IN (?) AND created_at >= ?", user.ID, []uint8{0, 1}, threeHoursAgo).
+	// 	First(&Ad)
+	// timeLimit := 3 * time.Hour
+	// remainingTime := timeLimit - time.Since(Ad.CreatedAt)
+	// if remainingTime > 0 {
+	// 	hours := int(remainingTime.Hours())
+	// 	minutes := int(remainingTime.Minutes()) % 60
+	// 	message := fmt.Sprintf("Вы сможете создать новое объявление через %d часа %d минут.", hours, minutes)
+	// 	alert := tgbotapi.NewCallbackWithAlert(update.CallbackQuery.ID, message)
+	// 	alert.ShowAlert = false
+	// 	ctx.BotAPI.Request(alert)
+	// 	return
+
+	// }
 	context.UpdateUserLevel(userID, ctx, 1)
 
 	var types []models.AdvertisementType
@@ -196,8 +216,14 @@ func HandleSelectADS(update *tgbotapi.Update, ctx *context.Context) {
 
 	var rows [][]tgbotapi.InlineKeyboardButton
 	for _, t := range types {
-		button := tgbotapi.NewInlineKeyboardButtonData(t.Name, "newAds_"+strconv.Itoa(int(t.ID)))
-		rows = append(rows, tgbotapi.NewInlineKeyboardRow(button))
+		if t.IsFree {
+			button := tgbotapi.NewInlineKeyboardButtonData(t.Name, "newAds_"+strconv.Itoa(int(t.ID)))
+			rows = append(rows, tgbotapi.NewInlineKeyboardRow(button))
+		} else {
+			button := tgbotapi.NewInlineKeyboardButtonData(t.Name+" ("+strconv.Itoa(int(t.Cost))+"₩)", "newAds_"+strconv.Itoa(int(t.ID)))
+			rows = append(rows, tgbotapi.NewInlineKeyboardRow(button))
+		}
+
 	}
 	button := tgbotapi.NewInlineKeyboardButtonData("Назад", "back")
 	rows = append(rows, tgbotapi.NewInlineKeyboardRow(button))
@@ -216,14 +242,24 @@ func HandleAddAds(update *tgbotapi.Update, ctx *context.Context, typeID string) 
 	userID := update.CallbackQuery.From.ID
 	state := context.GetUserState(userID, ctx)
 
-	context.UpdateUserLevel(userID, ctx, 2)
-
 	if state.Data["AdsInputs"] == nil {
 		var inputs []models.AdvertisementInputs
 
 		typeIDInt, _ := strconv.Atoi(typeID)
 		typeIDUint := uint(typeIDInt)
-
+		var Type models.AdvertisementType
+		db.DB.Where(&models.AdvertisementType{ID: typeIDUint}).First(&Type)
+		if !Type.IsFree {
+			var User models.User
+			db.DB.Where(&models.User{TelegramID: userID}).First(&User)
+			if User.Balance < Type.Cost {
+				message := "Недостаточно средств на балансе!"
+				alert := tgbotapi.NewCallbackWithAlert(update.CallbackQuery.ID, message)
+				alert.ShowAlert = false
+				ctx.BotAPI.Request(alert)
+				return
+			}
+		}
 		db.DB.Where(&models.AdvertisementInputs{TypeID: typeIDUint}).Order("priority asc").Find(&inputs)
 
 		resultMap := make(map[uint]AdsInputs)
@@ -248,7 +284,7 @@ func HandleAddAds(update *tgbotapi.Update, ctx *context.Context, typeID string) 
 			ActivStep: 0,
 		}
 	}
-
+	context.UpdateUserLevel(userID, ctx, 2)
 	adsInputs, _ := state.Data["AdsInputs"].(map[uint]AdsInputs)
 	photo, _ := state.Data["AdsPhoto"].(AdsPhoto)
 	var sortedInputs []AdsInputs
@@ -289,7 +325,7 @@ func HandleAddAds(update *tgbotapi.Update, ctx *context.Context, typeID string) 
 	}
 	var Types models.AdvertisementType
 	db.DB.Where(&models.AdvertisementType{ID: state.Data["ActivType"].(uint)}).First(&Types)
-	var messageText string = Types.Name + "\n\n"
+	var messageText string = "<b>" + Types.Name + "</b>\n\n"
 	for _, input := range sortedInputs {
 		var Value string
 		if input.Value == "" {
@@ -362,7 +398,7 @@ func HandleSaveAds(update *tgbotapi.Update, ctx *context.Context) {
 		}
 		return sortedInputs[i].Priority < sortedInputs[j].Priority
 	})
-	var messageText string = Types.Name + "\n\n"
+	var messageText string = "<b>" + Types.Name + "</b>\n\n"
 	for _, input := range sortedInputs {
 		var Value string
 		if input.Value == "" {
@@ -385,11 +421,21 @@ func HandleSaveAds(update *tgbotapi.Update, ctx *context.Context) {
 		messageText += "<b>" + input.Name + "</b>: " + Value + "\n\n"
 	}
 	var User models.User
+
 	db.DB.Where(&models.User{TelegramID: userID}).First(&User)
+	var CostUser uint = 0
+	if !Types.IsFree {
+		CostUser = User.Balance - Types.Cost
+		db.DB.Model(&models.User{}).
+			Where("id = ?", uint(User.ID)).
+			Updates(map[string]interface{}{
+				"balance": User.Balance - Types.Cost,
+			})
+	}
 	if photo.Activate {
-		db.DB.Save(&models.Advertisement{UserID: uint(User.ID), Text: messageText, ImageID: photo.ID, Status: 0})
+		db.DB.Save(&models.Advertisement{UserID: uint(User.ID), Text: messageText, ImageID: photo.ID, Status: 0, CostUser: CostUser})
 	} else {
-		db.DB.Save(&models.Advertisement{UserID: uint(User.ID), Text: messageText, Status: 0})
+		db.DB.Save(&models.Advertisement{UserID: uint(User.ID), Text: messageText, Status: 0, CostUser: CostUser})
 	}
 	delete(state.Data, "AdsInputs")
 	delete(state.Data, "AdsPhoto")
@@ -419,7 +465,7 @@ func HandlePreWive(update *tgbotapi.Update, ctx *context.Context) {
 	})
 	var Types models.AdvertisementType
 	db.DB.Where(&models.AdvertisementType{ID: typeID}).First(&Types)
-	var messageText string = Types.Name + "\n\n"
+	var messageText string = "<b>" + Types.Name + "</b>\n\n"
 	for _, input := range sortedInputs {
 		var Value string
 		if input.Value == "" {

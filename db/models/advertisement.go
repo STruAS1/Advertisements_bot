@@ -8,7 +8,9 @@ type Advertisement struct {
 	User      User   `gorm:"foreignKey:UserID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 	Text      string `gorm:"type:text"`
 	ImageID   string `gorm:"size:255;default:''"`
+	MassgeID  string `gorm:"size:255;default:''"`
 	Status    uint8
+	CostUser  uint
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }

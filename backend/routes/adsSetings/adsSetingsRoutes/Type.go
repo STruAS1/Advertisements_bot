@@ -11,12 +11,48 @@ import (
 )
 
 type TypeRequest struct {
-	IsFree bool   `json:"is_free"`
+	IsFree bool   `json:"IsFree"`
 	Cost   uint   `json:"Cost"`
-	Name   string `json:"name"`
+	Name   string `json:"Name"`
+}
+type SuccessResponse struct {
+	Message string      `json:"message"`
+	Data    interface{} `json:"data,omitempty"`
+}
+type ErrorResponse struct {
+	Message string `json:"message"`
 }
 
-func UpdateAdvertisementType(r chi.Router) {
+func writeJSON(w http.ResponseWriter, status int, data interface{}) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
+	json.NewEncoder(w).Encode(data)
+}
+
+func Type(r chi.Router) {
+	r.Get("/Types", func(w http.ResponseWriter, r *http.Request) {
+		var types []models.AdvertisementType
+		if err := db.DB.Find(&types).Error; err != nil {
+			writeJSON(w, http.StatusInternalServerError, ErrorResponse{
+				Message: "Failed to fetch data from database",
+			})
+			return
+		}
+
+		if len(types) == 0 {
+			writeJSON(w, http.StatusOK, SuccessResponse{
+				Message: "Ok",
+				Data:    []models.AdvertisementType{},
+			})
+			return
+		}
+
+		writeJSON(w, http.StatusOK, SuccessResponse{
+			Message: "Ok",
+			Data:    types,
+		})
+	})
+
 	r.Put("/Type", func(w http.ResponseWriter, r *http.Request) {
 		queryParams := r.URL.Query()
 		idStr := queryParams.Get("ID")
@@ -49,9 +85,6 @@ func UpdateAdvertisementType(r chi.Router) {
 			"message": "Ok",
 		})
 	})
-}
-
-func GetAdvertisementTypeInfo(r chi.Router) {
 	r.Get("/Type", func(w http.ResponseWriter, r *http.Request) {
 		queryParams := r.URL.Query()
 		idStr := queryParams.Get("ID")
@@ -74,16 +107,19 @@ func GetAdvertisementTypeInfo(r chi.Router) {
 			Data:    advType,
 		})
 	})
-}
 
-func CreateAdvertisementType(r chi.Router) {
 	r.Post("/Type", func(w http.ResponseWriter, r *http.Request) {
 		var createData TypeRequest
 		if err := json.NewDecoder(r.Body).Decode(&createData); err != nil {
 			http.Error(w, "Invalid JSON", http.StatusBadRequest)
 			return
 		}
-
+		if createData.Name == "" {
+			writeJSON(w, http.StatusBadRequest, ErrorResponse{
+				Message: "Название не может быть пустым ",
+			})
+		}
+		println(createData.IsFree)
 		newType := models.AdvertisementType{
 			IsFree: createData.IsFree,
 			Name:   createData.Name,
@@ -100,6 +136,26 @@ func CreateAdvertisementType(r chi.Router) {
 		writeJSON(w, http.StatusCreated, SuccessResponse{
 			Message: "OK",
 			Data:    newType,
+		})
+	})
+
+	r.Delete("/Type", func(w http.ResponseWriter, r *http.Request) {
+		queryParams := r.URL.Query()
+		idStr := queryParams.Get("ID")
+		id, err := strconv.ParseUint(idStr, 10, 32)
+		if err != nil {
+			http.Error(w, "Invalid ID: must be a positive integer", http.StatusBadRequest)
+			return
+		}
+		if err := db.DB.Where(models.AdvertisementType{ID: uint(id)}).Delete(&models.AdvertisementType{}).Error; err != nil {
+			writeJSON(w, http.StatusNotFound, ErrorResponse{
+				Message: "Record not found",
+			})
+			return
+		}
+		writeJSON(w, http.StatusCreated, SuccessResponse{
+			Message: "OK",
+			Data:    nil,
 		})
 	})
 }

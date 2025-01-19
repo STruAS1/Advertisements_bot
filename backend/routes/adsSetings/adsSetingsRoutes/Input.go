@@ -18,7 +18,46 @@ type UpdateInputRequest struct {
 	InputID  uint   `json:"input_id"`
 }
 
-func UpdateAdvertisementInput(r chi.Router) {
+type CreateInputRequest struct {
+	Priority uint   `json:"priority"`
+	Name     string `json:"name"`
+	Options  string `json:"options"`
+	Optional bool   `json:"optional"`
+	InputID  uint   `json:"input_id"`
+	TypeID   uint   `json:"type_id"`
+}
+
+func Input(r chi.Router) {
+	r.Get("/Inputs", func(w http.ResponseWriter, r *http.Request) {
+		queryParams := r.URL.Query()
+		TypeIDSTring := queryParams.Get("ID")
+		TypeID, err := strconv.ParseUint(TypeIDSTring, 10, 32)
+		if err != nil {
+			http.Error(w, "Invalid ID: must be a positive integer", http.StatusBadRequest)
+			return
+		}
+		var Inputs []models.AdvertisementInputs
+		if err := db.DB.Where(models.AdvertisementInputs{TypeID: uint(TypeID)}).Order("priority ASC").Find(&Inputs).Error; err != nil {
+			writeJSON(w, http.StatusInternalServerError, ErrorResponse{
+				Message: "Failed to fetch data from database",
+			})
+			return
+		}
+
+		if len(Inputs) == 0 {
+			writeJSON(w, http.StatusOK, SuccessResponse{
+				Message: "Ok",
+				Data:    []models.AdvertisementType{},
+			})
+			return
+		}
+
+		writeJSON(w, http.StatusOK, SuccessResponse{
+			Message: "Ok",
+			Data:    Inputs,
+		})
+	})
+
 	r.Put("/Input", func(w http.ResponseWriter, r *http.Request) {
 		queryParams := r.URL.Query()
 		idStr := queryParams.Get("ID")
@@ -50,9 +89,7 @@ func UpdateAdvertisementInput(r chi.Router) {
 			"message": "Ok",
 		})
 	})
-}
 
-func GetAdvertisementInputInfo(r chi.Router) {
 	r.Get("/Input", func(w http.ResponseWriter, r *http.Request) {
 		queryParams := r.URL.Query()
 		IDSTring := queryParams.Get("ID")
@@ -74,18 +111,7 @@ func GetAdvertisementInputInfo(r chi.Router) {
 			Data:    Input,
 		})
 	})
-}
 
-type CreateInputRequest struct {
-	Priority uint   `json:"priority"`
-	Name     string `json:"name"`
-	Options  string `json:"options"`
-	Optional bool   `json:"optional"`
-	InputID  uint   `json:"input_id"`
-	TypeID   uint   `json:"type_id"`
-}
-
-func CreateAdvertisementInput(r chi.Router) {
 	r.Post("/Input", func(w http.ResponseWriter, r *http.Request) {
 		var createData CreateInputRequest
 		if err := json.NewDecoder(r.Body).Decode(&createData); err != nil {
@@ -112,6 +138,26 @@ func CreateAdvertisementInput(r chi.Router) {
 		writeJSON(w, http.StatusCreated, SuccessResponse{
 			Message: "Ok",
 			Data:    newInput,
+		})
+	})
+
+	r.Delete("/Input", func(w http.ResponseWriter, r *http.Request) {
+		queryParams := r.URL.Query()
+		idStr := queryParams.Get("ID")
+		id, err := strconv.ParseUint(idStr, 10, 32)
+		if err != nil {
+			http.Error(w, "Invalid ID: must be a positive integer", http.StatusBadRequest)
+			return
+		}
+		if err := db.DB.Where(models.AdvertisementInputs{ID: uint(id)}).Delete(&models.AdvertisementInputs{}).Error; err != nil {
+			writeJSON(w, http.StatusNotFound, ErrorResponse{
+				Message: "Record not found",
+			})
+			return
+		}
+		writeJSON(w, http.StatusOK, SuccessResponse{
+			Message: "OK",
+			Data:    nil,
 		})
 	})
 }

@@ -1,4 +1,4 @@
-package adsroutes
+package usersroutes
 
 import (
 	"encoding/json"
@@ -6,7 +6,6 @@ import (
 	"strconv"
 	"tgbotBARAHOLKA/db"
 	"tgbotBARAHOLKA/db/models"
-	"tgbotBARAHOLKA/utilits"
 
 	"github.com/go-chi/chi/v5"
 )
@@ -25,26 +24,14 @@ func writeJSON(w http.ResponseWriter, status int, data interface{}) {
 	json.NewEncoder(w).Encode(data)
 }
 
-func GetAllAdvertisements(r chi.Router) {
-	r.Get("/ads", func(w http.ResponseWriter, r *http.Request) {
+func GetAllUsers(r chi.Router) {
+	r.Get("/Users", func(w http.ResponseWriter, r *http.Request) {
 		queryParams := r.URL.Query()
-		statusStr := queryParams.Get("status")
 		limitStr := queryParams.Get("limit")
 		pageStr := queryParams.Get("page")
 
-		var status uint8
 		var limit, page int
 		var err error
-
-		if statusStr != "" {
-			statusUint64, err := strconv.ParseUint(statusStr, 10, 8)
-			if err != nil || statusUint64 > 3 {
-				http.Error(w, "Invalid status: must be between 0 and 3", http.StatusBadRequest)
-				return
-			}
-
-			status = uint8(statusUint64)
-		}
 
 		if limitStr == "" {
 			limit = 20
@@ -66,14 +53,10 @@ func GetAllAdvertisements(r chi.Router) {
 			}
 		}
 
-		var advertisements []models.Advertisement
-		query := db.DB.Preload("User").Order("created_at desc").Limit(limit).Offset((page - 1) * limit)
+		var users []models.User
+		query := db.DB.Order("created_at desc").Limit(limit).Offset((page - 1) * limit)
 
-		if statusStr != "" {
-			query = query.Where("status = ?", status)
-		}
-
-		if err := query.Find(&advertisements).Error; err != nil {
+		if err := query.Find(&users).Error; err != nil {
 			writeJSON(w, http.StatusInternalServerError, ErrorResponse{
 				Message: "Failed to fetch advertisements",
 			})
@@ -81,28 +64,25 @@ func GetAllAdvertisements(r chi.Router) {
 		}
 
 		var totalRecords int64
-		countQuery := db.DB.Model(&models.Advertisement{})
-		if statusStr != "" {
-			countQuery = countQuery.Where("status = ?", status)
-		}
+		countQuery := db.DB.Model(&models.User{})
+
 		if err := countQuery.Count(&totalRecords).Error; err != nil {
 			writeJSON(w, http.StatusInternalServerError, ErrorResponse{
 				Message: "Failed to count total records",
 			})
 			return
 		}
-		advertisementWithphoto := make([]map[string]interface{}, len(advertisements))
-		for i, advertisement := range advertisements {
-			photoLink, _ := utilits.GetPhotoLink(advertisement.ImageID)
-			advertisementWithphoto[i] = map[string]interface{}{
-				"ID":        advertisement.ID,
-				"Text":      advertisement.Text,
-				"Status":    advertisement.Status,
-				"CreatedAt": advertisement.CreatedAt,
-				"UserID":    advertisement.UserID,
-				"photoLink": photoLink,
-				"UserName":  advertisement.User.Username,
-				"FL":        advertisement.User.FirstName + " " + advertisement.User.LastName,
+		UsersWithCount := make([]map[string]interface{}, len(users))
+		for i, user := range users {
+			var CountOfAds int64
+			db.DB.Model(&models.Advertisement{}).Where(&models.Advertisement{UserID: user.ID}).Count(&CountOfAds)
+			UsersWithCount[i] = map[string]interface{}{
+				"ID":         user.ID,
+				"Balance":    user.Balance,
+				"CountOfAds": CountOfAds,
+				"CreatedAt":  user.CreatedAt,
+				"UserName":   user.Username,
+				"FL":         user.FirstName + " " + user.LastName,
 			}
 		}
 
@@ -111,9 +91,10 @@ func GetAllAdvertisements(r chi.Router) {
 		writeJSON(w, http.StatusOK, SuccessResponse{
 			Message: "Ok",
 			Data: map[string]interface{}{
-				"advertisements": advertisementWithphoto,
+				"advertisements": UsersWithCount,
 				"currentPage":    page,
 				"totalPages":     totalPages,
+				"totalUsers":     totalRecords,
 			},
 		})
 	})

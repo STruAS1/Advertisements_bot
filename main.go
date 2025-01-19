@@ -1,7 +1,9 @@
 package main
 
 import (
+	"encoding/gob"
 	"log"
+	"os"
 	"tgbotBARAHOLKA/backend"
 	"tgbotBARAHOLKA/bot"
 	"tgbotBARAHOLKA/config"
@@ -11,7 +13,18 @@ import (
 
 func main() {
 	cfg := config.LoadConfig()
-
+	file, err := os.Open("config.gob")
+	if err != nil {
+		if os.IsNotExist(err) {
+			config.CreateDefaultSettings()
+		} else {
+			log.Panic("Ошибка с файлом конфигурации!")
+		}
+	} else {
+		decoder := gob.NewDecoder(file)
+		_ = decoder.Decode(&config.GlobalSettings)
+	}
+	file.Close()
 	db.Connect(cfg)
 	go backend.StartBackend()
 	go func() {
@@ -31,6 +44,5 @@ func main() {
 	}()
 
 	log.Println("Основной процесс работает...")
-
 	select {}
 }

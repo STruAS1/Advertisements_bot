@@ -9,5 +9,6 @@ import (
 func RegisterAdsRoutes(r chi.Router) {
 	r.Route("/ads", func(r chi.Router) {
 		adsroutes.GetAllAdvertisements(r)
+		adsroutes.UpdateStatus(r)
 	})
 }

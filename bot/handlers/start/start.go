@@ -4,6 +4,7 @@ import (
 	"log"
 	"strings"
 	"tgbotBARAHOLKA/bot/context"
+	"tgbotBARAHOLKA/config"
 	"tgbotBARAHOLKA/db"
 	"tgbotBARAHOLKA/db/models"
 
@@ -23,7 +24,7 @@ func HandleStartCommand(update *tgbotapi.Update, ctx *context.Context) {
 	} else {
 		userID = update.CallbackQuery.From.ID
 	}
-
+	context.UpdateUserLevel(userID, ctx, 0)
 	state := context.GetUserState(userID, ctx)
 	var user models.User
 	result := db.DB.Where("telegram_id = ?", userID).First(&user)
@@ -31,14 +32,17 @@ func HandleStartCommand(update *tgbotapi.Update, ctx *context.Context) {
 		[]tgbotapi.InlineKeyboardButton{
 			tgbotapi.NewInlineKeyboardButtonData("Объявление", "adsMenu"), tgbotapi.NewInlineKeyboardButtonData("Профиль", "profile"),
 		},
+		[]tgbotapi.InlineKeyboardButton{
+			tgbotapi.NewInlineKeyboardButtonData("Обучение", "Docs"),
+		},
 	)
 	if result.Error == nil {
 		if state.MessageID != 0 {
-			msg := tgbotapi.NewEditMessageTextAndMarkup(userID, state.MessageID, "Привет!", inlineKeyboard)
+			msg := tgbotapi.NewEditMessageTextAndMarkup(userID, state.MessageID, config.GlobalSettings.Texts.MainText+"ㅤ", inlineKeyboard)
 			ctx.BotAPI.Send(msg)
 
 		} else {
-			msg := tgbotapi.NewMessage(userID, "Привет!")
+			msg := tgbotapi.NewMessage(userID, config.GlobalSettings.Texts.MainText+"ㅤ")
 			msg.ReplyMarkup = inlineKeyboard
 			ctx.SendMessage(msg)
 		}
@@ -158,30 +162,8 @@ func HandleSubscriptionCheck(update *tgbotapi.Update, ctx *context.Context) {
 		context.UpdateUserLevel(userID, ctx, 0)
 		HandleStartCommand(update, ctx)
 	} else {
-		channelUsername = strings.TrimPrefix(channelUsername, "@")
-		url := "https://t.me/" + channelUsername
-		inlineKeyboard := tgbotapi.NewInlineKeyboardMarkup(
-			[]tgbotapi.InlineKeyboardButton{
-				tgbotapi.NewInlineKeyboardButtonURL("Подписаться на канал", url),
-			},
-			[]tgbotapi.InlineKeyboardButton{
-				tgbotapi.NewInlineKeyboardButtonData("Подписался", "cehk_sub"),
-			},
-		)
-		var text string
-		switch state.Data["Text_msg"].(string) {
-		default:
-			text = "Для завершения регистрации, пожалуйста, подпишитесь на канал."
-			state.Data["Text_msg"] = "Для завершения регистрации, пожалуйста, подпишитесь на канал."
-		case "Для завершения регистрации, пожалуйста, подпишитесь на канал.":
-			text = "Вам всё же нужно подписатся на канал!"
-			state.Data["Text_msg"] = "Вам всё же нужно подписатся на канал!"
-		case "Вам всё же нужно подписатся на канал!":
-			text = "Подпишись на канал для продолжения!"
-			state.Data["Text_msg"] = "Подпишись на канал для продолжения!"
-		}
-		msg := tgbotapi.NewEditMessageText(userID, state.MessageID, text)
-		msg.ReplyMarkup = &inlineKeyboard
-		ctx.BotAPI.Send(msg)
+		alert := tgbotapi.NewCallbackWithAlert(update.CallbackQuery.ID, "❌")
+		alert.ShowAlert = false
+		ctx.BotAPI.Request(alert)
 	}
 }

@@ -11,8 +11,9 @@ import (
 )
 
 var nameHandlers = map[string]func(*tgbotapi.Update, *context.Context, int64){
-	"start": start.Handle,
-	"ads":   ads.Handle,
+	"start":   start.Handle,
+	"ads":     ads.Handle,
+	"profile": profile.Handle,
 }
 
 func HandleUpdate(update *tgbotapi.Update, ctx *context.Context) {
@@ -48,13 +49,19 @@ func HandleUpdate(update *tgbotapi.Update, ctx *context.Context) {
 				context.UpdateUserName(userId, ctx, "ads")
 				ads.HandleMenu(update, ctx)
 			case "StartMenu":
+				context.UpdateUserName(userId, ctx, "start")
 				start.HandleStartCommand(update, ctx)
 			case "AddAds":
 				ads.HandleSelectADS(update, ctx)
 			case "AdsHistory":
 				ads.HandleSelectADSHistory(update, ctx)
 			case "profile":
+				context.UpdateUserName(userId, ctx, "profile")
 				profile.HandleProfile(update, ctx)
+			case "+balance":
+				profile.HandleSelectPaymentMetod(update, ctx)
+			case "Docs":
+				start.HandleDocs(update, ctx)
 			}
 
 		}
