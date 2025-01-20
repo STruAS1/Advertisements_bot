@@ -1,6 +1,7 @@
 package ads
 
 import (
+	"fmt"
 	"sort"
 	"strconv"
 	"strings"
@@ -189,26 +190,6 @@ func HandleViwerAdsHistory(update *tgbotapi.Update, ctx *context.Context) {
 func HandleSelectADS(update *tgbotapi.Update, ctx *context.Context) {
 	userID := update.CallbackQuery.From.ID
 	state := context.GetUserState(userID, ctx)
-	// var Ad models.Advertisement
-	// var user models.User
-	// db.DB.Where("telegram_id = ?", userID).First(&user)
-
-	// threeHoursAgo := time.Now().Add(-3 * time.Hour)
-	// db.DB.Model(&models.Advertisement{}).
-	// 	Where("user_id = ? AND status IN (?) AND created_at >= ?", user.ID, []uint8{0, 1}, threeHoursAgo).
-	// 	First(&Ad)
-	// timeLimit := 3 * time.Hour
-	// remainingTime := timeLimit - time.Since(Ad.CreatedAt)
-	// if remainingTime > 0 {
-	// 	hours := int(remainingTime.Hours())
-	// 	minutes := int(remainingTime.Minutes()) % 60
-	// 	message := fmt.Sprintf("Вы сможете создать новое объявление через %d часа %d минут.", hours, minutes)
-	// 	alert := tgbotapi.NewCallbackWithAlert(update.CallbackQuery.ID, message)
-	// 	alert.ShowAlert = false
-	// 	ctx.BotAPI.Request(alert)
-	// 	return
-
-	// }
 	context.UpdateUserLevel(userID, ctx, 1)
 
 	var types []models.AdvertisementType
@@ -238,10 +219,10 @@ func HandleSelectADS(update *tgbotapi.Update, ctx *context.Context) {
 	ctx.BotAPI.Send(msg)
 }
 
-func HandleAddAds(update *tgbotapi.Update, ctx *context.Context, typeID string) {
+func HandleAddAds(update *tgbotapi.Update, ctx *context.Context, typeID string, skipTimer bool) {
 	userID := update.CallbackQuery.From.ID
 	state := context.GetUserState(userID, ctx)
-
+	var rows [][]tgbotapi.InlineKeyboardButton
 	if state.Data["AdsInputs"] == nil {
 		var inputs []models.AdvertisementInputs
 
@@ -249,15 +230,45 @@ func HandleAddAds(update *tgbotapi.Update, ctx *context.Context, typeID string) 
 		typeIDUint := uint(typeIDInt)
 		var Type models.AdvertisementType
 		db.DB.Where(&models.AdvertisementType{ID: typeIDUint}).First(&Type)
+		var User models.User
+		db.DB.Where(&models.User{TelegramID: userID}).First(&User)
 		if !Type.IsFree {
-			var User models.User
-			db.DB.Where(&models.User{TelegramID: userID}).First(&User)
 			if User.Balance < Type.Cost {
 				message := "Недостаточно средств на балансе!"
 				alert := tgbotapi.NewCallbackWithAlert(update.CallbackQuery.ID, message)
 				alert.ShowAlert = false
 				ctx.BotAPI.Request(alert)
 				return
+			}
+		} else if !skipTimer {
+			var Ad models.Advertisement
+
+			threeHoursAgo := time.Now().Add(-3 * time.Hour)
+			db.DB.Model(&models.Advertisement{}).
+				Where("user_id = ? AND status IN (?) AND created_at >= ?", User.ID, []uint8{0, 1}, threeHoursAgo).
+				First(&Ad)
+			timeLimit := 3 * time.Hour
+			remainingTime := timeLimit - time.Since(Ad.CreatedAt)
+
+			if remainingTime > 0 {
+				context.UpdateUserLevel(userID, ctx, 10)
+				hours := int(remainingTime.Hours())
+				minutes := int(remainingTime.Minutes()) % 60
+				message := fmt.Sprintf("Вы сможете создать новое бесплатное объявление через %d часа %d минут.", hours, minutes)
+				cost := " (" + strconv.Itoa(int(config.GlobalSettings.Ads.CostLimit)) + " ₩)"
+				rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("Купить"+cost, "buy_"+typeID)))
+				rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("Назад", "back")))
+				msg := tgbotapi.NewEditMessageTextAndMarkup(
+					update.CallbackQuery.Message.Chat.ID,
+					state.MessageID,
+					message,
+					tgbotapi.NewInlineKeyboardMarkup(rows...),
+				)
+
+				msg.ParseMode = "HTML"
+				ctx.BotAPI.Send(msg)
+				return
+
 			}
 		}
 		db.DB.Where(&models.AdvertisementInputs{TypeID: typeIDUint}).Order("priority asc").Find(&inputs)
@@ -299,7 +310,6 @@ func HandleAddAds(update *tgbotapi.Update, ctx *context.Context, typeID string) 
 		return sortedInputs[i].Priority < sortedInputs[j].Priority
 	})
 
-	var rows [][]tgbotapi.InlineKeyboardButton
 	var row []tgbotapi.InlineKeyboardButton
 
 	for i, input := range sortedInputs {
@@ -425,11 +435,20 @@ func HandleSaveAds(update *tgbotapi.Update, ctx *context.Context) {
 	db.DB.Where(&models.User{TelegramID: userID}).First(&User)
 	var CostUser uint = 0
 	if !Types.IsFree {
-		CostUser = User.Balance - Types.Cost
+		CostUser += Types.Cost
 		db.DB.Model(&models.User{}).
 			Where("id = ?", uint(User.ID)).
 			Updates(map[string]interface{}{
 				"balance": User.Balance - Types.Cost,
+			})
+	}
+	data, exist := state.Data["SkipTimerCoast"].(uint)
+	if exist && data != 0 {
+		CostUser += data
+		db.DB.Model(&models.User{}).
+			Where("id = ?", uint(User.ID)).
+			Updates(map[string]interface{}{
+				"balance": User.Balance - data,
 			})
 	}
 	if photo.Activate {
@@ -440,6 +459,7 @@ func HandleSaveAds(update *tgbotapi.Update, ctx *context.Context) {
 	delete(state.Data, "AdsInputs")
 	delete(state.Data, "AdsPhoto")
 	delete(state.Data, "ActivType")
+	delete(state.Data, "SkipTimerCoast")
 	HandleMenu(update, ctx)
 
 }
@@ -583,7 +603,7 @@ func HandleAddPhoto(update *tgbotapi.Update, ctx *context.Context) {
 					photo.IsEdit = false
 					photo.Activate = false
 					state.Data["AdsPhoto"] = photo
-					HandleAddAds(update, ctx, "0")
+					HandleAddAds(update, ctx, "0", false)
 					return
 				}
 			}
@@ -648,7 +668,7 @@ func HandleAddPhoto(update *tgbotapi.Update, ctx *context.Context) {
 						ctx.BotAPI.Send(deleteMsg1)
 					}
 					state.Data["AdsPhoto"] = photo
-					HandleAddAds(update, ctx, "0")
+					HandleAddAds(update, ctx, "0", false)
 					return
 				}
 			}

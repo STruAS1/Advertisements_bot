@@ -4,6 +4,9 @@ import (
 	"strconv"
 	"strings"
 	"tgbotBARAHOLKA/bot/context"
+	"tgbotBARAHOLKA/config"
+	"tgbotBARAHOLKA/db"
+	"tgbotBARAHOLKA/db/models"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
@@ -29,6 +32,8 @@ func Handle(update *tgbotapi.Update, ctx *context.Context, userID int64) {
 		handelLvl8(update, ctx, userID)
 	case 9:
 		handelLvl9(update, ctx, userID)
+	case 10:
+		handleLvl10(update, ctx, userID)
 	}
 }
 
@@ -41,7 +46,7 @@ func handleLvl1(update *tgbotapi.Update, ctx *context.Context) {
 				HandleMenu(update, ctx)
 			}
 		} else if len(data) == 2 && data[0] == "newAds" {
-			HandleAddAds(update, ctx, data[1])
+			HandleAddAds(update, ctx, data[1], false)
 		}
 	}
 }
@@ -74,7 +79,7 @@ func handleLvl3(update *tgbotapi.Update, ctx *context.Context, userID int64) {
 		switch data[0] {
 		case "back":
 			delete(state.Data, "ActiveInput")
-			HandleAddAds(update, ctx, "0")
+			HandleAddAds(update, ctx, "0", false)
 		case "BackToList":
 			ActiveInput, exsist := state.Data["ActiveInput"].(ActiveInput)
 			if exsist {
@@ -125,7 +130,7 @@ func handleLvl4(update *tgbotapi.Update, ctx *context.Context, userID int64) {
 				AdsPhoto.ActivStep = 0
 				AdsPhoto.IsEdit = true
 				state.Data["AdsPhoto"] = AdsPhoto
-				HandleAddAds(update, ctx, "0")
+				HandleAddAds(update, ctx, "0", false)
 			default:
 				HandleAddPhoto(update, ctx)
 			}
@@ -153,7 +158,7 @@ func handelLvl5(update *tgbotapi.Update, ctx *context.Context, userID int64) {
 		if update.CallbackQuery != nil {
 			switch update.CallbackQuery.Data {
 			case "back":
-				HandleAddAds(update, ctx, "0")
+				HandleAddAds(update, ctx, "0", false)
 			}
 		}
 	}
@@ -163,7 +168,7 @@ func handelLvl6(update *tgbotapi.Update, ctx *context.Context) {
 	if update.CallbackQuery != nil {
 		switch update.CallbackQuery.Data {
 		case "back":
-			HandleAddAds(update, ctx, "0")
+			HandleAddAds(update, ctx, "0", false)
 		}
 	}
 }
@@ -172,12 +177,13 @@ func handelLvl7(update *tgbotapi.Update, ctx *context.Context, userId int64) {
 	if update.CallbackQuery != nil {
 		switch update.CallbackQuery.Data {
 		case "back":
-			HandleAddAds(update, ctx, "0")
+			HandleAddAds(update, ctx, "0", false)
 		case "Delete":
 			state := context.GetUserState(userId, ctx)
 			delete(state.Data, "AdsInputs")
 			delete(state.Data, "AdsPhoto")
 			delete(state.Data, "ActivType")
+			delete(state.Data, "SkipTimerCoast")
 			HandleMenu(update, ctx)
 		}
 
@@ -231,6 +237,31 @@ func handelLvl9(update *tgbotapi.Update, ctx *context.Context, userID int64) {
 				delete(state.Data, "MessageIdPhoto")
 				HandleSelectADSHistory(update, ctx)
 			}
+		}
+	}
+}
+
+func handleLvl10(update *tgbotapi.Update, ctx *context.Context, userID int64) {
+	if update.CallbackQuery != nil {
+		data := strings.Split(update.CallbackQuery.Data, "_")
+		if len(data) == 1 {
+			switch data[0] {
+			case "back":
+				HandleSelectADS(update, ctx)
+			}
+		} else if len(data) == 2 && data[0] == "buy" {
+			var User models.User
+			db.DB.Where(&models.User{TelegramID: userID}).First(&User)
+			if User.Balance < config.GlobalSettings.Ads.CostLimit {
+				message := "Недостаточно средств на балансе!"
+				alert := tgbotapi.NewCallbackWithAlert(update.CallbackQuery.ID, message)
+				alert.ShowAlert = false
+				ctx.BotAPI.Request(alert)
+				return
+			}
+			state := context.GetUserState(userID, ctx)
+			state.Data["SkipTimerCoast"] = config.GlobalSettings.Ads.CostLimit
+			HandleAddAds(update, ctx, data[1], true)
 		}
 	}
 }

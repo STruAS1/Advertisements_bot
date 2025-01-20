@@ -117,7 +117,7 @@ func HandleAddInput(update *tgbotapi.Update, ctx *context.Context, InputID strin
 					Input.Activate = false
 					Input.Value = ""
 					adsInputs[inputIDUint] = Input
-					HandleAddAds(update, ctx, "0")
+					HandleAddAds(update, ctx, "0", false)
 					state := context.GetUserState(userID, ctx)
 					delete(state.Data, "ActiveInput")
 					return
@@ -201,7 +201,7 @@ func HandleAddInput(update *tgbotapi.Update, ctx *context.Context, InputID strin
 				valueMap, _ := ActiveInput.Value.(map[uint]string)
 				Input.Value = valueMap[0]
 				adsInputs[inputIDUint] = Input
-				HandleAddAds(update, ctx, "0")
+				HandleAddAds(update, ctx, "0", false)
 				state := context.GetUserState(userID, ctx)
 				delete(state.Data, "ActiveInput")
 				return
@@ -277,7 +277,7 @@ func HandleAddInput(update *tgbotapi.Update, ctx *context.Context, InputID strin
 				Input.Value = valueMap[0]
 				adsInputs, _ := state.Data["AdsInputs"].(map[uint]AdsInputs)
 				adsInputs[inputIDUint] = Input
-				HandleAddAds(update, ctx, "0")
+				HandleAddAds(update, ctx, "0", false)
 				state := context.GetUserState(userID, ctx)
 				delete(state.Data, "ActiveInput")
 				return
@@ -531,7 +531,7 @@ func HandleAddInput(update *tgbotapi.Update, ctx *context.Context, InputID strin
 				Input.Value = valueMap[1] + " " + valueMap[0]
 				adsInputs, _ := state.Data["AdsInputs"].(map[uint]AdsInputs)
 				adsInputs[inputIDUint] = Input
-				HandleAddAds(update, ctx, "0")
+				HandleAddAds(update, ctx, "0", false)
 				state := context.GetUserState(userID, ctx)
 				delete(state.Data, "ActiveInput")
 				return
@@ -818,7 +818,7 @@ func HandleAddInput(update *tgbotapi.Update, ctx *context.Context, InputID strin
 				Input.Value = valueMap[1] + " " + valueMap[0]
 				adsInputs, _ := state.Data["AdsInputs"].(map[uint]AdsInputs)
 				adsInputs[inputIDUint] = Input
-				HandleAddAds(update, ctx, "0")
+				HandleAddAds(update, ctx, "0", false)
 				state := context.GetUserState(userID, ctx)
 				delete(state.Data, "ActiveInput")
 				return
@@ -977,7 +977,7 @@ func HandleAddInput(update *tgbotapi.Update, ctx *context.Context, InputID strin
 				Input.Value = valueMap[0]
 				adsInputs, _ := state.Data["AdsInputs"].(map[uint]AdsInputs)
 				adsInputs[inputIDUint] = Input
-				HandleAddAds(update, ctx, "0")
+				HandleAddAds(update, ctx, "0", false)
 				state := context.GetUserState(userID, ctx)
 				delete(state.Data, "ActiveInput")
 				return
@@ -1052,7 +1052,7 @@ func HandleAddInput(update *tgbotapi.Update, ctx *context.Context, InputID strin
 				Input.Value = valueMap[0]
 				adsInputs, _ := state.Data["AdsInputs"].(map[uint]AdsInputs)
 				adsInputs[inputIDUint] = Input
-				HandleAddAds(update, ctx, "0")
+				HandleAddAds(update, ctx, "0", false)
 				state := context.GetUserState(userID, ctx)
 				delete(state.Data, "ActiveInput")
 				return
@@ -1093,7 +1093,7 @@ func HandleAddInput(update *tgbotapi.Update, ctx *context.Context, InputID strin
 							Input.Value = textActiveCities
 							adsInputs, _ := state.Data["AdsInputs"].(map[uint]AdsInputs)
 							adsInputs[inputIDUint] = Input
-							HandleAddAds(update, ctx, "0")
+							HandleAddAds(update, ctx, "0", false)
 							state := context.GetUserState(userID, ctx)
 							delete(state.Data, "ActiveInput")
 							return
