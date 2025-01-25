@@ -2,38 +2,30 @@ package utilits
 
 import (
 	"bytes"
-	"io"
-	"net/http"
+	"errors"
 	"tgbotBARAHOLKA/config"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
-func FetchVideoToMemory(url string) (string, error) {
+func SaveAndSendVideoToTelegram(fileName string, fileData []byte) (string, error) {
 	cfg := config.LoadConfig()
-	botAPI, _ := tgbotapi.NewBotAPI(cfg.Bot.Token)
-	resp, err := http.Get(url)
+	botAPI, err := tgbotapi.NewBotAPI(cfg.Bot.Token)
 	if err != nil {
-		return "", err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return "", io.ErrUnexpectedEOF
+		return "", errors.New("ошибка подключения к Telegram API: " + err.Error())
 	}
 
-	var buf bytes.Buffer
-	_, err = io.Copy(&buf, resp.Body)
-	if err != nil {
-		return "", err
-	}
-
-	fileName := "video.mp4"
+	// Создаем сообщение с видео
 	video := tgbotapi.NewVideo(1062226084, tgbotapi.FileReader{
 		Name:   fileName,
-		Reader: bytes.NewReader(buf.Bytes()),
+		Reader: bytes.NewReader(fileData),
 	})
 	video.ParseMode = "HTML"
-	vidoeMassge, _ := botAPI.Send(video)
-	return vidoeMassge.Video.FileID, nil
+
+	videoMessage, err := botAPI.Send(video)
+	if err != nil {
+		return "", errors.New("ошибка отправки видео в Telegram: " + err.Error())
+	}
+
+	return videoMessage.Video.FileID, nil
 }

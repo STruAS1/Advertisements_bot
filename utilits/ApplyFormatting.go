@@ -2,13 +2,21 @@ package utilits
 
 import (
 	"fmt"
+	"regexp"
 	"sort"
 	"strings"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
+func removeHTMLTags(input string) string {
+	re := regexp.MustCompile(`<[^>]*>`)
+	return re.ReplaceAllString(input, "")
+}
+
 func ApplyFormatting(text string, entities []tgbotapi.MessageEntity) string {
+	text = removeHTMLTags(text)
+
 	var formattedText strings.Builder
 	entityMap := make(map[int][]tgbotapi.MessageEntity)
 
@@ -31,6 +39,7 @@ func ApplyFormatting(text string, entities []tgbotapi.MessageEntity) string {
 			}
 
 			result := entityText.String()
+
 			sort.SliceStable(entityGroup, func(a, b int) bool {
 				return entityGroup[a].Offset < entityGroup[b].Offset
 			})

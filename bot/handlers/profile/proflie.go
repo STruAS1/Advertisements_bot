@@ -21,6 +21,7 @@ func HandleProfile(update *tgbotapi.Update, ctx *context.Context) {
 	db.DB.Where("telegram_id = ?", userID).First(&user)
 	text := "<b>" + user.FirstName + " " + user.LastName + "</b>"
 	text += "\n<b>ID</b>: <code>" + strconv.Itoa(int(user.ID)) + "</code>"
+	text += "\n\n<b>Населенный пункт</b>: <code>" + user.City + "</code>"
 	text += "\n\n<b>Баланс</b>: " + strconv.Itoa(int(user.Balance))
 	var CountOfAds int64
 	db.DB.Model(&models.Advertisement{}).Where(&models.Advertisement{UserID: user.ID}).Count(&CountOfAds)
@@ -28,6 +29,28 @@ func HandleProfile(update *tgbotapi.Update, ctx *context.Context) {
 	db.DB.Model(&models.Advertisement{}).Where(&models.Advertisement{UserID: user.ID, Status: 1}).Count(&AprovedCounOFAds)
 	text += "\n\n<b>Всего объявлений</b>: " + strconv.Itoa(int(CountOfAds))
 	text += "\n<b>Опубликовано объявлений</b>: " + strconv.Itoa(int(AprovedCounOFAds))
+	var VerStatus string = "✅"
+	var CallBack string = "nil"
+	var verSufix string
+	if !user.Verification {
+		var verification models.VerificationAplication
+		result := db.DB.Where(&models.VerificationAplication{UserID: user.ID}).
+			Order("id DESC").
+			First(&verification)
+		if result.Error != nil {
+			VerStatus = ""
+			verSufix = " (" + strconv.Itoa(int(config.GlobalSettings.VerificationCost)) + "₩)"
+			CallBack = "Verification_" + strconv.Itoa(int(state.MessageID))
+		} else if verification.Status == 0 {
+			VerStatus = "⏳"
+		} else if verification.Status == 2 {
+			VerStatus = "❌"
+			verSufix = " (" + strconv.Itoa(int(config.GlobalSettings.VerificationCost)) + "₩)"
+			CallBack = "Verification_" + strconv.Itoa(int(state.MessageID))
+		}
+	}
+
+	rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(VerStatus+"Верификация"+verSufix, CallBack)))
 	rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("Пополнить баланс", "+balance")))
 	rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("Назад", "StartMenu")))
 	msg := tgbotapi.NewEditMessageTextAndMarkup(

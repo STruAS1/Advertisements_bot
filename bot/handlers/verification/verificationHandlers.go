@@ -1,0 +1,30 @@
+package verification
+
+import (
+	"tgbotBARAHOLKA/bot/context"
+
+	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+)
+
+func Handle(update *tgbotapi.Update, ctx *context.Context, userID int64) {
+	state := context.GetUserState(userID, ctx)
+	switch state.Level {
+	case 1:
+		handleLvl1(update, ctx, userID)
+	}
+
+}
+
+func handleLvl1(update *tgbotapi.Update, ctx *context.Context, userID int64) {
+	if update.CallbackQuery != nil {
+		switch update.CallbackQuery.Data {
+		case "back":
+			HandleBackToStartMenu(ctx, userID)
+		default:
+			HandleVerification(update, ctx)
+		}
+	}
+	if update.Message != nil {
+		HandleVerification(update, ctx)
+	}
+}

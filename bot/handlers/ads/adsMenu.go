@@ -1,7 +1,6 @@
 package ads
 
 import (
-	"fmt"
 	"sort"
 	"strconv"
 	"strings"
@@ -55,7 +54,7 @@ func HandleMenu(update *tgbotapi.Update, ctx *context.Context) {
 			tgbotapi.NewInlineKeyboardButtonData("Мои объявления", "AdsHistory"),
 		},
 		[]tgbotapi.InlineKeyboardButton{
-			tgbotapi.NewInlineKeyboardButtonData("Назад", "StartMenu"),
+			tgbotapi.NewInlineKeyboardButtonData(config.GlobalSettings.Buttons[5].ButtonText, "StartMenu"),
 		},
 	)
 	context.UpdateUserLevel(userID, ctx, 0)
@@ -137,7 +136,7 @@ func HandleSelectADSHistory(update *tgbotapi.Update, ctx *context.Context) {
 	} else if len(pages)-1 == int(currentPage) && len(pages) != 1 {
 		rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("«", "backAds")))
 	}
-	rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("Назад", "back")))
+	rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(config.GlobalSettings.Buttons[5].ButtonText, "back")))
 	msg := tgbotapi.NewEditMessageTextAndMarkup(
 		update.CallbackQuery.Message.Chat.ID,
 		state.MessageID,
@@ -159,7 +158,7 @@ func HandleViwerAdsHistory(update *tgbotapi.Update, ctx *context.Context) {
 	var rows [][]tgbotapi.InlineKeyboardButton
 	if ads.ImageID == "" {
 		state.Data["MessageIdPhoto"] = 0
-		rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("Назад", "back")))
+		rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(config.GlobalSettings.Buttons[5].ButtonText, "back")))
 		msg := tgbotapi.NewEditMessageTextAndMarkup(
 			update.CallbackQuery.Message.Chat.ID,
 			state.MessageID,
@@ -178,7 +177,7 @@ func HandleViwerAdsHistory(update *tgbotapi.Update, ctx *context.Context) {
 	photoConfig := tgbotapi.NewPhoto(userID, tgbotapi.FileID(ads.ImageID))
 	message, _ := ctx.BotAPI.Send(photoConfig)
 	state.Data["MessageIdPhoto"] = message.MessageID
-	rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("Назад", "back")))
+	rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(config.GlobalSettings.Buttons[5].ButtonText, "back")))
 	msg := tgbotapi.NewMessage(
 		update.CallbackQuery.Message.Chat.ID,
 		ads.Text,
@@ -206,7 +205,7 @@ func HandleSelectADS(update *tgbotapi.Update, ctx *context.Context) {
 		}
 
 	}
-	button := tgbotapi.NewInlineKeyboardButtonData("Назад", "back")
+	button := tgbotapi.NewInlineKeyboardButtonData(config.GlobalSettings.Buttons[5].ButtonText, "back")
 	rows = append(rows, tgbotapi.NewInlineKeyboardRow(button))
 
 	msg := tgbotapi.NewEditMessageTextAndMarkup(
@@ -240,37 +239,38 @@ func HandleAddAds(update *tgbotapi.Update, ctx *context.Context, typeID string, 
 				ctx.BotAPI.Request(alert)
 				return
 			}
-		} else if !skipTimer {
-			var Ad models.Advertisement
-
-			threeHoursAgo := time.Now().Add(-3 * time.Hour)
-			db.DB.Model(&models.Advertisement{}).
-				Where("user_id = ? AND status IN (?) AND created_at >= ?", User.ID, []uint8{0, 1}, threeHoursAgo).
-				First(&Ad)
-			timeLimit := 3 * time.Hour
-			remainingTime := timeLimit - time.Since(Ad.CreatedAt)
-
-			if remainingTime > 0 {
-				context.UpdateUserLevel(userID, ctx, 10)
-				hours := int(remainingTime.Hours())
-				minutes := int(remainingTime.Minutes()) % 60
-				message := fmt.Sprintf("Вы сможете создать новое бесплатное объявление через %d часа %d минут.", hours, minutes)
-				cost := " (" + strconv.Itoa(int(config.GlobalSettings.Ads.CostLimit)) + " ₩)"
-				rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("Купить"+cost, "buy_"+typeID)))
-				rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("Назад", "back")))
-				msg := tgbotapi.NewEditMessageTextAndMarkup(
-					update.CallbackQuery.Message.Chat.ID,
-					state.MessageID,
-					message,
-					tgbotapi.NewInlineKeyboardMarkup(rows...),
-				)
-
-				msg.ParseMode = "HTML"
-				ctx.BotAPI.Send(msg)
-				return
-
-			}
 		}
+		// else if !skipTimer {
+		// 	var Ad models.Advertisement
+
+		// 	threeHoursAgo := time.Now().Add(-3 * time.Hour)
+		// 	db.DB.Model(&models.Advertisement{}).
+		// 		Where("user_id = ? AND status IN (?) AND created_at >= ?", User.ID, []uint8{0, 1}, threeHoursAgo).
+		// 		First(&Ad)
+		// 	timeLimit := 3 * time.Hour
+		// 	remainingTime := timeLimit - time.Since(Ad.CreatedAt)
+
+		// 	if remainingTime > 0 {
+		// 		context.UpdateUserLevel(userID, ctx, 10)
+		// 		hours := int(remainingTime.Hours())
+		// 		minutes := int(remainingTime.Minutes()) % 60
+		// 		message := fmt.Sprintf("Вы сможете создать новое бесплатное объявление через %d часа %d минут.", hours, minutes)
+		// 		cost := " (" + strconv.Itoa(int(config.GlobalSettings.Ads.CostLimit)) + " ₩)"
+		// 		rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("Купить"+cost, "buy_"+typeID)))
+		// 		rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("Назад", "back")))
+		// 		msg := tgbotapi.NewEditMessageTextAndMarkup(
+		// 			update.CallbackQuery.Message.Chat.ID,
+		// 			state.MessageID,
+		// 			message,
+		// 			tgbotapi.NewInlineKeyboardMarkup(rows...),
+		// 		)
+
+		// 		msg.ParseMode = "HTML"
+		// 		ctx.BotAPI.Send(msg)
+		// 		return
+
+		// 	}
+		// }
 		db.DB.Where(&models.AdvertisementInputs{TypeID: typeIDUint}).Order("priority asc").Find(&inputs)
 
 		resultMap := make(map[uint]AdsInputs)
@@ -359,7 +359,7 @@ func HandleAddAds(update *tgbotapi.Update, ctx *context.Context, typeID string, 
 	}
 	rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("Пред просмотр", "preViwe")))
 	rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("Сохранить", "Save")))
-	rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("Назад", "back")))
+	rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(config.GlobalSettings.Buttons[5].ButtonText, "back")))
 
 	msg := tgbotapi.NewEditMessageTextAndMarkup(
 		update.CallbackQuery.Message.Chat.ID,
@@ -376,7 +376,7 @@ func HandleBackAds(update *tgbotapi.Update, ctx *context.Context) {
 	text := "Вы уверены что хотите уйти? всё что вы ввели не сохранится"
 	context.UpdateUserLevel(userID, ctx, 7)
 	var rows [][]tgbotapi.InlineKeyboardButton
-	rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("Назад", "back")))
+	rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(config.GlobalSettings.Buttons[5].ButtonText, "back")))
 	rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("🗑️ Удалить", "Delete")))
 	msg := tgbotapi.NewEditMessageTextAndMarkup(
 		update.CallbackQuery.Message.Chat.ID,
@@ -415,7 +415,7 @@ func HandleSaveAds(update *tgbotapi.Update, ctx *context.Context) {
 			if input.Optional {
 				continue
 			} else {
-				rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("Назад", "back")))
+				rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(config.GlobalSettings.Buttons[5].ButtonText, "back")))
 				msg := tgbotapi.NewEditMessageTextAndMarkup(
 					update.CallbackQuery.Message.Chat.ID,
 					state.MessageID,
@@ -515,7 +515,7 @@ func HandlePreWive(update *tgbotapi.Update, ctx *context.Context) {
 		messageText,
 	)
 	var rows [][]tgbotapi.InlineKeyboardButton
-	rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("Назад", "back")))
+	rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(config.GlobalSettings.Buttons[5].ButtonText, "back")))
 	msg.ReplyMarkup = tgbotapi.NewInlineKeyboardMarkup(rows...)
 	msg.ParseMode = "HTML"
 	ctx.SendMessage(msg)
@@ -555,7 +555,7 @@ func HandleAddPhoto(update *tgbotapi.Update, ctx *context.Context) {
 					state.Data["AdsPhoto"] = photo
 					rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("✏️ Редактировать", "Edit")))
 					rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("🗑️ Удалить", "Delete")))
-					rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("« Назад", "back")))
+					rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(config.GlobalSettings.Buttons[5].ButtonText, "back")))
 					msg := tgbotapi.NewMessage(
 						userID,
 						"❔ Вы хотите изменить фотографию?",
@@ -582,7 +582,7 @@ func HandleAddPhoto(update *tgbotapi.Update, ctx *context.Context) {
 					photo.ActivStep = 2
 					state.Data["AdsPhoto"] = photo
 					rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("🗑️ Удалить", "Delete")))
-					rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("« Назад", "back")))
+					rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(config.GlobalSettings.Buttons[5].ButtonText, "back")))
 					text := "❗ Вы уверены, что хотите удалить?"
 					println(text)
 					msg := tgbotapi.NewEditMessageTextAndMarkup(

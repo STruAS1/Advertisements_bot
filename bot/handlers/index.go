@@ -2,18 +2,22 @@ package handlers
 
 import (
 	"log"
+	"strconv"
+	"strings"
 	"tgbotBARAHOLKA/bot/context"
 	"tgbotBARAHOLKA/bot/handlers/ads"
 	"tgbotBARAHOLKA/bot/handlers/profile"
 	"tgbotBARAHOLKA/bot/handlers/start"
+	"tgbotBARAHOLKA/bot/handlers/verification"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
 var nameHandlers = map[string]func(*tgbotapi.Update, *context.Context, int64){
-	"start":   start.Handle,
-	"ads":     ads.Handle,
-	"profile": profile.Handle,
+	"start":        start.Handle,
+	"ads":          ads.Handle,
+	"profile":      profile.Handle,
+	"Verification": verification.Handle,
 }
 
 func HandleUpdate(update *tgbotapi.Update, ctx *context.Context) {
@@ -29,6 +33,15 @@ func HandleUpdate(update *tgbotapi.Update, ctx *context.Context) {
 	}
 
 	state := context.GetUserState(userID, ctx)
+	if update.Message != nil {
+		switch update.Message.Command() {
+		case "start":
+			state.MessageID = 0
+			context.ClearAllUserData(userID, ctx)
+			start.HandleStartCommand(update, ctx)
+			return
+		}
+	}
 	if state.Level != 0 {
 		if handler, exists := nameHandlers[state.Name]; exists {
 			handler(update, ctx, userID)
@@ -36,15 +49,9 @@ func HandleUpdate(update *tgbotapi.Update, ctx *context.Context) {
 			start.Handle(update, ctx, userID)
 		}
 	} else {
-		if update.Message != nil {
-			switch update.Message.Command() {
-			case "start":
-				start.HandleStartCommand(update, ctx)
-			}
-		}
 		if update.CallbackQuery != nil {
 			userId := update.CallbackQuery.From.ID
-			switch update.CallbackQuery.Data {
+			switch strings.Split(update.CallbackQuery.Data, "_")[0] {
 			case "adsMenu":
 				context.UpdateUserName(userId, ctx, "ads")
 				ads.HandleMenu(update, ctx)
@@ -62,6 +69,11 @@ func HandleUpdate(update *tgbotapi.Update, ctx *context.Context) {
 				profile.HandleSelectPaymentMetod(update, ctx)
 			case "Docs":
 				start.HandleDocs(update, ctx)
+			case "Verification":
+				if len(strings.Split(update.CallbackQuery.Data, "_")) == 2 && strings.Split(update.CallbackQuery.Data, "_")[1] == strconv.Itoa(state.MessageID) {
+					context.UpdateUserName(userId, ctx, "Verification")
+					verification.HandleVerification(update, ctx)
+				}
 			}
 
 		}

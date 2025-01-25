@@ -13,9 +13,6 @@ import (
 type UpdateInputRequest struct {
 	Priority uint   `json:"priority"`
 	Name     string `json:"name"`
-	Options  string `json:"options"`
-	Optional bool   `json:"optional"`
-	InputID  uint   `json:"input_id"`
 }
 
 type CreateInputRequest struct {
@@ -78,9 +75,6 @@ func Input(r chi.Router) {
 			Updates(map[string]interface{}{
 				"priority": updateData.Priority,
 				"name":     updateData.Name,
-				"options":  updateData.Options,
-				"optional": updateData.Optional,
-				"input_id": updateData.InputID,
 			}).Error; err != nil {
 			http.Error(w, "Failed to update record", http.StatusInternalServerError)
 			return

@@ -36,6 +36,40 @@ type CitiesPage struct {
 	Cities []CitiesRow
 }
 
+func extractDomain(text string) string {
+	re := regexp.MustCompile(`(?:https?|ftp|file|mailto|tel|data|ws|wss):\/\/(?:[a-zA-Z0-9-]+\.)?([a-zA-Z0-9-]+\.[a-zA-Z]{2,})`)
+	matches := re.FindAllStringSubmatch(text, -1)
+	WitheListDomines := config.GlobalSettings.WitheListDomines
+	containsDomain := func(domains []string, domain string) bool {
+		for _, d := range domains {
+			if d == domain {
+				return true
+			}
+		}
+		return false
+	}
+	if len(matches) > 0 {
+		var domains string
+		domains += `<i>`
+		allDomainsAllowed := true
+		for _, match := range matches {
+			if len(match) > 1 {
+				domain := match[1]
+				if !containsDomain(WitheListDomines, domain) {
+					domains += "\n" + domain
+					allDomainsAllowed = false
+				}
+			}
+		}
+		domains += `</i>`
+		if allDomainsAllowed {
+			return ""
+		}
+		return domains
+	}
+	return ""
+}
+
 func HandleAddInput(update *tgbotapi.Update, ctx *context.Context, InputID string) {
 	var userID int64
 	var value string
@@ -172,6 +206,21 @@ func HandleAddInput(update *tgbotapi.Update, ctx *context.Context, InputID strin
 					msg.ParseMode = "HTML"
 					ctx.BotAPI.Send(msg)
 					return
+				} else if extractDomain(value) != "" {
+					rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("🚫 Отмена ", "back")))
+					text := (`<b>❗️Следующие домены не выходят в белый список: </b>` + extractDomain(value) +
+						"\n\n<i>Пожалуйста, удалите ссылку из текста.</i>" +
+						"\n\n<b>🔎Предварительный просмотр</b>" +
+						"\n\n<b>" + Input.Name + "</b>: ")
+					msg := tgbotapi.NewEditMessageTextAndMarkup(
+						update.Message.Chat.ID,
+						state.MessageID,
+						text,
+						tgbotapi.NewInlineKeyboardMarkup(rows...),
+					)
+					msg.ParseMode = "HTML"
+					ctx.BotAPI.Send(msg)
+					return
 				} else {
 					formatetText := utilits.ApplyFormatting(value, entities)
 					valueMap, _ := ActiveInput.Value.(map[uint]string)
@@ -237,6 +286,21 @@ func HandleAddInput(update *tgbotapi.Update, ctx *context.Context, InputID strin
 					rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("🚫 Отмена ", "back")))
 					text := (`<b>❗️Превышен лимит символов</b>` +
 						"\n\n<i>❔Напишите любой текст до 2000 символов</i>" +
+						"\n\n<b>🔎Предварительный просмотр</b>" +
+						"\n\n<b>" + Input.Name + "</b>: ")
+					msg := tgbotapi.NewEditMessageTextAndMarkup(
+						update.Message.Chat.ID,
+						state.MessageID,
+						text,
+						tgbotapi.NewInlineKeyboardMarkup(rows...),
+					)
+					msg.ParseMode = "HTML"
+					ctx.BotAPI.Send(msg)
+					return
+				} else if extractDomain(value) != "" {
+					rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("🚫 Отмена ", "back")))
+					text := (`<b>❗️Следующие домены не выходят в белый список: </b>` + extractDomain(value) +
+						"\n\n<i>Пожалуйста, удалите ссылку из текста.</i>" +
 						"\n\n<b>🔎Предварительный просмотр</b>" +
 						"\n\n<b>" + Input.Name + "</b>: ")
 					msg := tgbotapi.NewEditMessageTextAndMarkup(
@@ -1208,6 +1272,8 @@ func HandleAddInput(update *tgbotapi.Update, ctx *context.Context, InputID strin
 						rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("🔎 Поиск", "search"), tgbotapi.NewInlineKeyboardButtonData("Дальше »", "nextCity")))
 					} else if len(ActiveInput.CitiesPages)-1 == int(currentPage) && len(ActiveInput.CitiesPages) != 1 {
 						rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("« Назад", "backCity"), tgbotapi.NewInlineKeyboardButtonData("🔎 Поиск", "search")))
+					} else {
+						rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("🔎 Поиск", "search")))
 					}
 					rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("📋 Сохранить", "Save")))
 					rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("🚫 Отмена ", "back")))

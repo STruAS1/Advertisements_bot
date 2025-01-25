@@ -11,9 +11,10 @@ import (
 )
 
 type TypeRequest struct {
-	IsFree bool   `json:"IsFree"`
-	Cost   uint   `json:"Cost"`
-	Name   string `json:"Name"`
+	IsFree   bool   `json:"IsFree"`
+	Cost     uint   `json:"Cost"`
+	Name     string `json:"Name"`
+	Priority uint   `json:"priority"`
 }
 type SuccessResponse struct {
 	Message string      `json:"message"`
@@ -71,9 +72,10 @@ func Type(r chi.Router) {
 		if err := db.DB.Model(&models.AdvertisementType{}).
 			Where("id = ?", uint(id)).
 			Updates(map[string]interface{}{
-				"is_free": updateData.IsFree,
-				"name":    updateData.Name,
-				"Cost":    updateData.Cost,
+				"is_free":  updateData.IsFree,
+				"name":     updateData.Name,
+				"Cost":     updateData.Cost,
+				"priority": updateData.Priority,
 			}).Error; err != nil {
 			writeJSON(w, http.StatusInternalServerError, ErrorResponse{
 				Message: "Failed to update record",
@@ -119,11 +121,11 @@ func Type(r chi.Router) {
 				Message: "Название не может быть пустым ",
 			})
 		}
-		println(createData.IsFree)
 		newType := models.AdvertisementType{
-			IsFree: createData.IsFree,
-			Name:   createData.Name,
-			Cost:   createData.Cost,
+			IsFree:   createData.IsFree,
+			Name:     createData.Name,
+			Cost:     createData.Cost,
+			Priority: createData.Priority,
 		}
 
 		if err := db.DB.Create(&newType).Error; err != nil {

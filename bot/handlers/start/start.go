@@ -2,7 +2,7 @@ package start
 
 import (
 	"log"
-	"strings"
+	"strconv"
 	"tgbotBARAHOLKA/bot/context"
 	"tgbotBARAHOLKA/config"
 	"tgbotBARAHOLKA/db"
@@ -30,10 +30,10 @@ func HandleStartCommand(update *tgbotapi.Update, ctx *context.Context) {
 	result := db.DB.Where("telegram_id = ?", userID).First(&user)
 	inlineKeyboard := tgbotapi.NewInlineKeyboardMarkup(
 		[]tgbotapi.InlineKeyboardButton{
-			tgbotapi.NewInlineKeyboardButtonData("Объявление", "adsMenu"), tgbotapi.NewInlineKeyboardButtonData("Профиль", "profile"),
+			tgbotapi.NewInlineKeyboardButtonData(config.GlobalSettings.Buttons[0].ButtonText, "adsMenu"), tgbotapi.NewInlineKeyboardButtonData(config.GlobalSettings.Buttons[2].ButtonText, "profile"),
 		},
 		[]tgbotapi.InlineKeyboardButton{
-			tgbotapi.NewInlineKeyboardButtonData("Обучение", "Docs"),
+			tgbotapi.NewInlineKeyboardButtonData(config.GlobalSettings.Buttons[1].ButtonText, "Docs"),
 		},
 	)
 	if result.Error == nil {
@@ -66,6 +66,28 @@ func HandleStartCommand(update *tgbotapi.Update, ctx *context.Context) {
 	context.UpdateUserLevel(userID, ctx, 1)
 	ctx.SendMessage(msg)
 }
+func HandleVerificationRequest(update *tgbotapi.Update, ctx *context.Context) {
+	userID := update.CallbackQuery.From.ID
+	state := context.GetUserState(userID, ctx)
+	context.UpdateUserLevel(userID, ctx, 0)
+	CallBack := "Verification_" + strconv.Itoa(int(state.MessageID))
+	verSufix := " (" + strconv.Itoa(int(config.GlobalSettings.VerificationCost)) + "₩)"
+	inlineKeyboard := tgbotapi.NewInlineKeyboardMarkup(
+		[]tgbotapi.InlineKeyboardButton{
+			tgbotapi.NewInlineKeyboardButtonData("Верификация"+verSufix, CallBack),
+		},
+		[]tgbotapi.InlineKeyboardButton{
+			tgbotapi.NewInlineKeyboardButtonData("Пропустить", "StartMenu"),
+		},
+	)
+	msg := tgbotapi.NewEditMessageTextAndMarkup(
+		userID,
+		state.MessageID,
+		"Пройти верификацию",
+		inlineKeyboard,
+	)
+	ctx.BotAPI.Send(msg)
+}
 
 func HandlePhoneNumberRequest(update *tgbotapi.Update, ctx *context.Context) {
 	userID := update.Message.Chat.ID
@@ -79,20 +101,13 @@ func HandlePhoneNumberRequest(update *tgbotapi.Update, ctx *context.Context) {
 		userPhone := update.Message.Contact.PhoneNumber
 
 		state.Data["phone_number"] = userPhone
-		state.Data["Text_msg"] = "Для завершения регистрации, пожалуйста, подпишитесь на канал."
-		channelUsername := ctx.Config.Bot.ChannelId
-		channelUsername = strings.TrimPrefix(channelUsername, "@")
-		url := "https://t.me/" + channelUsername
 
 		inlineKeyboard := tgbotapi.NewInlineKeyboardMarkup(
 			[]tgbotapi.InlineKeyboardButton{
-				tgbotapi.NewInlineKeyboardButtonURL("Подписаться на канал", url),
-			},
-			[]tgbotapi.InlineKeyboardButton{
-				tgbotapi.NewInlineKeyboardButtonData("Подписался", "cehk_sub"),
+				tgbotapi.NewInlineKeyboardButtonData("Выбрать город", "ChooseCity"),
 			},
 		)
-		msg := tgbotapi.NewMessage(userID, "Спасибо за номер. Теперь подпишитесь на канал.")
+		msg := tgbotapi.NewMessage(userID, "Для завершения регистрации, выберите город из списка")
 		msg.ReplyMarkup = inlineKeyboard
 		deleteMsg := tgbotapi.DeleteMessageConfig{
 			ChatID:    userID,
@@ -144,13 +159,14 @@ func HandleSubscriptionCheck(update *tgbotapi.Update, ctx *context.Context) {
 	state := context.GetUserState(userID, ctx)
 	if member.Status == "member" || member.Status == "administrator" || member.Status == "creator" {
 		userPhone := state.Data["phone_number"].(string)
-
+		userCity := state.Data["CityTitle"].(string)
 		newUser := models.User{
 			TelegramID: update.CallbackQuery.From.ID,
 			FirstName:  update.CallbackQuery.From.FirstName,
 			Username:   update.CallbackQuery.From.UserName,
 			LastName:   update.CallbackQuery.From.LastName,
 			Phone:      userPhone,
+			City:       userCity,
 		}
 
 		if err := db.DB.Create(&newUser).Error; err != nil {
@@ -158,9 +174,10 @@ func HandleSubscriptionCheck(update *tgbotapi.Update, ctx *context.Context) {
 			return
 		}
 		context.ClearAllUserData(userID, ctx)
-
+		delete(state.Data, "phone_number")
+		delete(state.Data, "CityTitle")
 		context.UpdateUserLevel(userID, ctx, 0)
-		HandleStartCommand(update, ctx)
+		HandleVerificationRequest(update, ctx)
 	} else {
 		alert := tgbotapi.NewCallbackWithAlert(update.CallbackQuery.ID, "❌")
 		alert.ShowAlert = false
