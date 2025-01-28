@@ -21,7 +21,7 @@ func FormatFloatWithSpaces(number float64) string {
 		result.WriteRune(digit)
 	}
 
-	if fracPart != "" {
+	if fracPart != "00" {
 		result.WriteString("." + fracPart)
 	}
 

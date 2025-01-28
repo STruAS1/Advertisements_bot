@@ -95,14 +95,15 @@ func GetAllAdvertisements(r chi.Router) {
 		for i, advertisement := range advertisements {
 			photoLink, _ := utilits.GetPhotoLink(advertisement.ImageID)
 			advertisementWithphoto[i] = map[string]interface{}{
-				"ID":        advertisement.ID,
-				"Text":      advertisement.Text,
-				"Status":    advertisement.Status,
-				"CreatedAt": advertisement.CreatedAt,
-				"UserID":    advertisement.UserID,
-				"photoLink": photoLink,
-				"UserName":  advertisement.User.Username,
-				"FL":        advertisement.User.FirstName + " " + advertisement.User.LastName,
+				"ID":                 advertisement.ID,
+				"Text":               advertisement.Text,
+				"Status":             advertisement.Status,
+				"CreatedAt":          advertisement.CreatedAt,
+				"UserID":             advertisement.UserID,
+				"photoLink":          photoLink,
+				"DeletedFromChannel": advertisement.DeletedFromChannel,
+				"UserName":           advertisement.User.Username,
+				"FL":                 advertisement.User.FirstName + " " + advertisement.User.LastName,
 			}
 		}
 

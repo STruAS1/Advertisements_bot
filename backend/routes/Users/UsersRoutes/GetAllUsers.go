@@ -94,7 +94,6 @@ func GetAllUsers(r chi.Router) {
 				"advertisements": UsersWithCount,
 				"currentPage":    page,
 				"totalPages":     totalPages,
-				"totalUsers":     totalRecords,
 			},
 		})
 	})

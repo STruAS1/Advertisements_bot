@@ -26,6 +26,7 @@ func writeJSON(w http.ResponseWriter, status int, data interface{}) {
 
 func GetAllPayments(r chi.Router) {
 	r.Get("/payments", func(w http.ResponseWriter, r *http.Request) {
+
 		queryParams := r.URL.Query()
 		statusStr := queryParams.Get("status")
 		limitStr := queryParams.Get("limit")

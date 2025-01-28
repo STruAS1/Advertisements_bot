@@ -44,3 +44,18 @@ func SendMessageToUser(message string, userID int64) int {
 	}
 	return ms.MessageID
 }
+
+func DeleteMessageFromChanel(massgeID int) error {
+	cfg := config.LoadConfig()
+	botAPI, _ := tgbotapi.NewBotAPI(cfg.Bot.Token)
+
+	deleteMsg1 := tgbotapi.DeleteMessageConfig{
+		ChannelUsername: cfg.Bot.ChannelId,
+		MessageID:       massgeID,
+	}
+	_, err := botAPI.Send(deleteMsg1)
+	if err != nil {
+		return err
+	}
+	return nil
+}

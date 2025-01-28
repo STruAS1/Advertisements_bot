@@ -54,7 +54,7 @@ func HandleVerification(update *tgbotapi.Update, ctx *context.Context) {
 			MessageID: update.Message.MessageID,
 		}
 		if update.Message.Photo != nil {
-			photoID = update.Message.Photo[0].FileID
+			photoID = update.Message.Photo[len(update.Message.Photo)-1].FileID
 		}
 		value = update.Message.Text
 		ctx.BotAPI.Send(deleteMsg1)
@@ -89,16 +89,16 @@ func HandleVerification(update *tgbotapi.Update, ctx *context.Context) {
 		}
 	case 1:
 		if update.Message != nil {
-			if value == "" || len(strings.Split(value, " ")) != 3 {
+			if value == "" {
 				msg := tgbotapi.NewMessage(userID, "⚠️ Пожалуйста, введите ФИО как в удостоверении личности.")
 				msg.ParseMode = "HTML"
 				ctx.BotAPI.Send(msg)
 				return
 			}
-			FIO := strings.Split(value, " ")
-			verification.Data.FIO.LastName = FIO[0]
-			verification.Data.FIO.FirstName = FIO[1]
-			verification.Data.FIO.Patronymic = FIO[2]
+			// FIO := strings.Split(value, " ")
+			verification.Data.FIO.LastName = value
+			// verification.Data.FIO.FirstName = FIO[1]
+			// verification.Data.FIO.Patronymic = FIO[2]
 			verification.ActiveStep++
 			rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("🚫 Отмена", "back")))
 			msg := tgbotapi.NewEditMessageTextAndMarkup(
@@ -189,7 +189,7 @@ func HandleVerification(update *tgbotapi.Update, ctx *context.Context) {
 		}
 	case 5:
 		if update.Message != nil && update.Message.Photo != nil {
-			verification.Data.CardIdFileID = photoID
+			verification.Data.DocumentFileID = photoID
 		}
 		delete(state.Data, "verification")
 		HandleBackToStartMenu(ctx, userID)

@@ -14,7 +14,7 @@ func HandleDocs(update *tgbotapi.Update, ctx *context.Context) {
 	context.UpdateUserLevel(userID, ctx, 3)
 	var rows [][]tgbotapi.InlineKeyboardButton
 	docs := config.GlobalSettings.Docs
-	rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("Назад", "back")))
+	rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(config.GlobalSettings.Buttons[5].ButtonText, "back")))
 	if docs.VideoUrl != "" {
 		deleteMsg1 := tgbotapi.DeleteMessageConfig{
 			ChatID:    userID,

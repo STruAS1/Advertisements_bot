@@ -173,7 +173,7 @@ func HandleAddInput(update *tgbotapi.Update, ctx *context.Context, InputID strin
 				if CallbackQuery[0] == "AddInput" || update.CallbackQuery.Data == "Edit" {
 					ActiveInput.ActiveStep = 1
 					state.Data["ActiveInput"] = ActiveInput
-					rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("🚫 Отмена ", "back")))
+					rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(config.GlobalSettings.Buttons[14].ButtonText, "back")))
 					text := (`<b>❗️Поле: "` + Input.Name + `"</b>` +
 						"\n\n<i>❔Напишите любой короткий текст до 150 символов</i>" +
 						"\n\n<b>🔎Предварительный просмотр</b>" +
@@ -192,7 +192,7 @@ func HandleAddInput(update *tgbotapi.Update, ctx *context.Context, InputID strin
 		case 1:
 			if update.Message != nil {
 				if utf8.RuneCountInString(value) > 150 {
-					rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("🚫 Отмена ", "back")))
+					rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(config.GlobalSettings.Buttons[14].ButtonText, "back")))
 					text := (`<b>❗️Превышен лимит символов</b>` +
 						"\n\n<i>❔Напишите любой короткий текст до 150 символов</i>" +
 						"\n\n<b>🔎Предварительный просмотр</b>" +
@@ -207,7 +207,7 @@ func HandleAddInput(update *tgbotapi.Update, ctx *context.Context, InputID strin
 					ctx.BotAPI.Send(msg)
 					return
 				} else if extractDomain(value) != "" {
-					rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("🚫 Отмена ", "back")))
+					rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(config.GlobalSettings.Buttons[14].ButtonText, "back")))
 					text := (`<b>❗️Следующие домены не выходят в белый список: </b>` + extractDomain(value) +
 						"\n\n<i>Пожалуйста, удалите ссылку из текста.</i>" +
 						"\n\n<b>🔎Предварительный просмотр</b>" +
@@ -228,8 +228,8 @@ func HandleAddInput(update *tgbotapi.Update, ctx *context.Context, InputID strin
 					ActiveInput.Value = valueMap
 					ActiveInput.ActiveStep = 2
 					state.Data["ActiveInput"] = ActiveInput
-					rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("🚫 Отмена ", "back")))
-					rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("📋 Сохранить", "Save")))
+					rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(config.GlobalSettings.Buttons[14].ButtonText, "back")))
+					rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(config.GlobalSettings.Buttons[15].ButtonText, "Save")))
 					text := ("<b>🔎Предварительный просмотр</b>" +
 						"\n\n<b>" + Input.Name + "</b>: " + formatetText)
 					msg := tgbotapi.NewEditMessageTextAndMarkup(
@@ -264,7 +264,7 @@ func HandleAddInput(update *tgbotapi.Update, ctx *context.Context, InputID strin
 				if CallbackQuery[0] == "AddInput" || update.CallbackQuery.Data == "Edit" {
 					ActiveInput.ActiveStep = 1
 					state.Data["ActiveInput"] = ActiveInput
-					rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("🚫 Отмена ", "back")))
+					rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(config.GlobalSettings.Buttons[14].ButtonText, "back")))
 					text := (`<b>❗️Поле: "` + Input.Name + `"</b>` +
 						"\n\n<i>❔Напишите любой текст до 2000 символов</i>" +
 						"\n\n<b>🔎Предварительный просмотр</b>" +
@@ -283,7 +283,7 @@ func HandleAddInput(update *tgbotapi.Update, ctx *context.Context, InputID strin
 		case 1:
 			if update.Message != nil {
 				if utf8.RuneCountInString(value) > 2000 {
-					rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("🚫 Отмена ", "back")))
+					rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(config.GlobalSettings.Buttons[14].ButtonText, "back")))
 					text := (`<b>❗️Превышен лимит символов</b>` +
 						"\n\n<i>❔Напишите любой текст до 2000 символов</i>" +
 						"\n\n<b>🔎Предварительный просмотр</b>" +
@@ -298,7 +298,7 @@ func HandleAddInput(update *tgbotapi.Update, ctx *context.Context, InputID strin
 					ctx.BotAPI.Send(msg)
 					return
 				} else if extractDomain(value) != "" {
-					rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("🚫 Отмена ", "back")))
+					rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(config.GlobalSettings.Buttons[14].ButtonText, "back")))
 					text := (`<b>❗️Следующие домены не выходят в белый список: </b>` + extractDomain(value) +
 						"\n\n<i>Пожалуйста, удалите ссылку из текста.</i>" +
 						"\n\n<b>🔎Предварительный просмотр</b>" +
@@ -319,8 +319,8 @@ func HandleAddInput(update *tgbotapi.Update, ctx *context.Context, InputID strin
 					ActiveInput.Value = valueMap
 					ActiveInput.ActiveStep = 2
 					state.Data["ActiveInput"] = ActiveInput
-					rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("🚫 Отмена ", "back")))
-					rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("📋 Сохранить", "Save")))
+					rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(config.GlobalSettings.Buttons[14].ButtonText, "back")))
+					rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(config.GlobalSettings.Buttons[15].ButtonText, "Save")))
 					text := ("<b>🔎Предварительный просмотр</b>" +
 						"\n\n<b>" + Input.Name + "</b>:\n" + formatetText)
 					msg := tgbotapi.NewEditMessageTextAndMarkup(
@@ -357,7 +357,7 @@ func HandleAddInput(update *tgbotapi.Update, ctx *context.Context, InputID strin
 					state.Data["ActiveInput"] = ActiveInput
 					rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("💳 Разовая", "OneTime")))
 					rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("🔁 Регулярная", "Recurring")))
-					rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("🚫 Отмена ", "back")))
+					rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(config.GlobalSettings.Buttons[14].ButtonText, "back")))
 					text := (`<b>❗️Поле: "` + Input.Name + `"</b>` +
 						"\n\n<i>❔Выберите тип оплаты</i>" +
 						"\n\n<blockquote><i>💳 Разовая: 100₩\n🔁 Регулярная: 10₩/Час</i></blockquote>" +
@@ -382,7 +382,7 @@ func HandleAddInput(update *tgbotapi.Update, ctx *context.Context, InputID strin
 					rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("Час", "time_Час"), tgbotapi.NewInlineKeyboardButtonData("День", "time_День")))
 					rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("Неделя", "time_Неделя")))
 					rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("Месяц", "time_Месяц"), tgbotapi.NewInlineKeyboardButtonData("Год", "time_Год")))
-					rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("🚫 Отмена ", "back")))
+					rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(config.GlobalSettings.Buttons[14].ButtonText, "back")))
 					text := (`<b>❗️Поле: "` + Input.Name + `"</b>` +
 						"\n\n<i>❔Выберите план оплаты</i>" +
 						"\n\n<blockquote><i>10₩/Час\n100₩/День\n700₩/Неделя\n3 000₩/Месяц\n36 500₩/Год</i></blockquote>" +
@@ -404,7 +404,7 @@ func HandleAddInput(update *tgbotapi.Update, ctx *context.Context, InputID strin
 					state.Data["ActiveInput"] = ActiveInput
 					rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("📌 Фикс.Цена", "Fix"), tgbotapi.NewInlineKeyboardButtonData("🔄 Приблизительная цена", "Approximate")))
 					rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("📉📈 Диапазон", "Range")))
-					rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("🚫 Отмена ", "back")))
+					rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(config.GlobalSettings.Buttons[14].ButtonText, "back")))
 					text := (`<b>❗️Поле: "` + Input.Name + `"</b>` +
 						"\n\n<i>❔Выберите тип ценового ввода</i>" +
 						"\n\n<blockquote><i><b>📌 Фикс.Цена</b>: 100₩\n\n<b>🔄 Приблизительная цена</b>: ~100₩\n\n<b>📉📈 Диапазон: 90-100₩</b></i></blockquote>" +
@@ -431,7 +431,7 @@ func HandleAddInput(update *tgbotapi.Update, ctx *context.Context, InputID strin
 					state.Data["ActiveInput"] = ActiveInput
 					rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("📌 Фикс.Цена", "Fix"), tgbotapi.NewInlineKeyboardButtonData("🔄 Приблизительная цена", "Approximate")))
 					rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("📉📈 Диапазон", "Range")))
-					rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("🚫 Отмена ", "back")))
+					rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(config.GlobalSettings.Buttons[14].ButtonText, "back")))
 					text := (`<b>❗️Поле: "` + Input.Name + `"</b>` +
 						"\n\n<i>❔Выберите тип ценового ввода</i>" +
 						"\n\n<blockquote><i><b>📌 Фикс.Цена</b>: 100₩/" + Callback[1] + "\n\n<b>🔄 Приблизительная цена</b>: ~100₩/" + Callback[1] + "\n\n<b>📉📈 Диапазон: 90-100₩/" + Callback[1] + "</b></i></blockquote>" +
@@ -458,7 +458,7 @@ func HandleAddInput(update *tgbotapi.Update, ctx *context.Context, InputID strin
 					}
 					ActiveInput.ActiveStep = 5
 					state.Data["ActiveInput"] = ActiveInput
-					rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("🚫 Отмена ", "back")))
+					rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(config.GlobalSettings.Buttons[14].ButtonText, "back")))
 					text := (`<b>❗️Поле: "` + Input.Name + `"</b>` +
 						"\n\n<i>❔Введите цену</i>" +
 						"\n\n<b>🔎Предварительный просмотр</b>" +
@@ -477,7 +477,7 @@ func HandleAddInput(update *tgbotapi.Update, ctx *context.Context, InputID strin
 					valueMap[1] = ""
 					ActiveInput.ActiveStep = 4
 					state.Data["ActiveInput"] = ActiveInput
-					rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("🚫 Отмена ", "back")))
+					rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(config.GlobalSettings.Buttons[14].ButtonText, "back")))
 					text := (`<b>❗️Поле: "` + Input.Name + `"</b>` +
 						"\n\n<i>❔Введите минимальную стоимость</i>" +
 						"\n\n<b>🔎Предварительный просмотр</b>" +
@@ -498,7 +498,7 @@ func HandleAddInput(update *tgbotapi.Update, ctx *context.Context, InputID strin
 				price := strings.ReplaceAll(value, " ", "")
 				priceFloat, err := strconv.ParseFloat(price, 64)
 				if err != nil {
-					rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("🚫 Отмена ", "back")))
+					rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(config.GlobalSettings.Buttons[14].ButtonText, "back")))
 					text := "❗️Введите коректное числовое значение!"
 					msg := tgbotapi.NewEditMessageTextAndMarkup(
 						update.Message.Chat.ID,
@@ -510,7 +510,7 @@ func HandleAddInput(update *tgbotapi.Update, ctx *context.Context, InputID strin
 					return
 				}
 				if priceFloat > 10000000000000 {
-					rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("🚫 Отмена ", "back")))
+					rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(config.GlobalSettings.Buttons[14].ButtonText, "back")))
 					text := "❗️Вы ввели больше максимального значения!"
 					msg := tgbotapi.NewEditMessageTextAndMarkup(
 						update.Message.Chat.ID,
@@ -526,7 +526,7 @@ func HandleAddInput(update *tgbotapi.Update, ctx *context.Context, InputID strin
 				valueMap, _ := ActiveInput.Value.(map[uint]string)
 				valueMap[1] = utilits.FormatFloatWithSpaces(priceFloat) + " - "
 				state.Data["ActiveInput"] = ActiveInput
-				rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("🚫 Отмена ", "back")))
+				rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(config.GlobalSettings.Buttons[14].ButtonText, "back")))
 				text := (`<b>❗️Поле: "` + Input.Name + `"</b>` +
 					"\n\n<i>❔Введите максимальную стоимость</i>" +
 					"\n\n<b>🔎Предварительный просмотр</b>" +
@@ -546,7 +546,7 @@ func HandleAddInput(update *tgbotapi.Update, ctx *context.Context, InputID strin
 				price := strings.ReplaceAll(value, " ", "")
 				priceFloat, err := strconv.ParseFloat(price, 64)
 				if err != nil {
-					rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("🚫 Отмена ", "back")))
+					rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(config.GlobalSettings.Buttons[14].ButtonText, "back")))
 					text := "❗️Введите коректное числовое значение!"
 					msg := tgbotapi.NewEditMessageTextAndMarkup(
 						update.Message.Chat.ID,
@@ -558,7 +558,7 @@ func HandleAddInput(update *tgbotapi.Update, ctx *context.Context, InputID strin
 					return
 				}
 				if priceFloat > 10000000000000 {
-					rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("🚫 Отмена ", "back")))
+					rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(config.GlobalSettings.Buttons[14].ButtonText, "back")))
 					text := "❗️Вы ввели больше максимального значения!"
 					msg := tgbotapi.NewEditMessageTextAndMarkup(
 						update.Message.Chat.ID,
@@ -574,8 +574,8 @@ func HandleAddInput(update *tgbotapi.Update, ctx *context.Context, InputID strin
 				valueMap, _ := ActiveInput.Value.(map[uint]string)
 				valueMap[1] += utilits.FormatFloatWithSpaces(priceFloat)
 				state.Data["ActiveInput"] = ActiveInput
-				rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("📋 Сохранить", "Save")))
-				rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("🚫 Отмена ", "back")))
+				rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(config.GlobalSettings.Buttons[15].ButtonText, "Save")))
+				rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(config.GlobalSettings.Buttons[14].ButtonText, "back")))
 				text := ("\n\n<b>🔎Предварительный просмотр</b>" +
 					"\n\n<b>" + Input.Name + "</b>: " + valueMap[1] + " " + valueMap[0])
 				msg := tgbotapi.NewEditMessageTextAndMarkup(
@@ -611,7 +611,7 @@ func HandleAddInput(update *tgbotapi.Update, ctx *context.Context, InputID strin
 					state.Data["ActiveInput"] = ActiveInput
 					rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("⚡ Сдельная", "OneTime")))
 					rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("🔁 Регулярная", "Recurring")))
-					rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("🚫 Отмена ", "back")))
+					rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(config.GlobalSettings.Buttons[14].ButtonText, "back")))
 					text := (`<b>❗️Поле: "` + Input.Name + `"</b>` +
 						"\n\n<i>❔Выберите тип оплаты</i>" +
 						"\n\n<blockquote><i><b>⚡ Сдельная</b>: 10₩/Шт\n<b>🔁 Регулярная</b>: 10₩/Час</i></blockquote>" +
@@ -632,7 +632,7 @@ func HandleAddInput(update *tgbotapi.Update, ctx *context.Context, InputID strin
 			if update.CallbackQuery.Data == "OneTime" {
 				ActiveInput.ActiveStep = 2
 				state.Data["ActiveInput"] = ActiveInput
-				rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("🚫 Отмена ", "back")))
+				rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(config.GlobalSettings.Buttons[14].ButtonText, "back")))
 				text := (`<b>❗️Поле: "` + Input.Name + `"</b>` +
 					"\n\n<i>❔Напишите идиницу измерения</i>" +
 					"\n\n<blockquote><i><b>✅Пример:</b> Шт, М², Кг</i></blockquote>" +
@@ -653,7 +653,7 @@ func HandleAddInput(update *tgbotapi.Update, ctx *context.Context, InputID strin
 				rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("Час", "time_Час"), tgbotapi.NewInlineKeyboardButtonData("День", "time_День")))
 				rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("Неделя", "time_Неделя")))
 				rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("Месяц", "time_Месяц"), tgbotapi.NewInlineKeyboardButtonData("Год", "time_Год")))
-				rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("🚫 Отмена ", "back")))
+				rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(config.GlobalSettings.Buttons[14].ButtonText, "back")))
 				text := (`<b>❗️Поле: "` + Input.Name + `"</b>` +
 					"\n\n<i>❔Выберите план оплаты</i>" +
 					"\n\n<blockquote><i>10₩/Час\n100₩/День\n700₩/Неделя\n3 000₩/Месяц\n36 500₩/Год</i></blockquote>" +
@@ -673,7 +673,7 @@ func HandleAddInput(update *tgbotapi.Update, ctx *context.Context, InputID strin
 			if update.Message != nil {
 				value = strings.ReplaceAll(value, " ", "")
 				if utf8.RuneCountInString(value) > 10 {
-					rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("🚫 Отмена ", "back")))
+					rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(config.GlobalSettings.Buttons[14].ButtonText, "back")))
 					text := "<b>❗️ Превышен лимит символов!</b>"
 					msg := tgbotapi.NewEditMessageTextAndMarkup(
 						update.Message.Chat.ID,
@@ -691,7 +691,7 @@ func HandleAddInput(update *tgbotapi.Update, ctx *context.Context, InputID strin
 					state.Data["ActiveInput"] = ActiveInput
 					rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("📌 Фикс.Цена", "Fix"), tgbotapi.NewInlineKeyboardButtonData("🔄 Приблизительная цена", "Approximate")))
 					rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("📉📈 Диапазон", "Range")))
-					rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("🚫 Отмена ", "back")))
+					rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(config.GlobalSettings.Buttons[14].ButtonText, "back")))
 					text := (`<b>❗️Поле: "` + Input.Name + `"</b>` +
 						"\n\n<i>❔Выберите тип ценового ввода</i>" +
 						"\n\n<blockquote><i><b>📌 Фикс.Цена</b>: 100" + valueMap[0] + "\n\n<b>🔄 Приблизительная цена</b>: ~100" + valueMap[0] + "\n\n<b>📉📈 Диапазон: 90-100" + valueMap[0] + "</b></i></blockquote>" +
@@ -718,7 +718,7 @@ func HandleAddInput(update *tgbotapi.Update, ctx *context.Context, InputID strin
 					state.Data["ActiveInput"] = ActiveInput
 					rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("📌 Фикс.Цена", "Fix"), tgbotapi.NewInlineKeyboardButtonData("🔄 Приблизительная цена", "Approximate")))
 					rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("📉📈 Диапазон", "Range")))
-					rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("🚫 Отмена ", "back")))
+					rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(config.GlobalSettings.Buttons[14].ButtonText, "back")))
 					text := (`<b>❗️Поле: "` + Input.Name + `"</b>` +
 						"\n\n<i>❔Выберите тип ценового ввода</i>" +
 						"\n\n<blockquote><i><b>📌 Фикс.Цена</b>: 100₩/" + Callback[1] + "\n\n<b>🔄 Приблизительная цена</b>: ~100₩/" + Callback[1] + "\n\n<b>📉📈 Диапазон: 90-100₩/" + Callback[1] + "</b></i></blockquote>" +
@@ -745,7 +745,7 @@ func HandleAddInput(update *tgbotapi.Update, ctx *context.Context, InputID strin
 					}
 					ActiveInput.ActiveStep = 6
 					state.Data["ActiveInput"] = ActiveInput
-					rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("🚫 Отмена ", "back")))
+					rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(config.GlobalSettings.Buttons[14].ButtonText, "back")))
 					text := (`<b>❗️Поле: "` + Input.Name + `"</b>` +
 						"\n\n<i>❔Введите зарплату</i>" +
 						"\n\n<b>🔎Предварительный просмотр</b>" +
@@ -764,7 +764,7 @@ func HandleAddInput(update *tgbotapi.Update, ctx *context.Context, InputID strin
 					valueMap[1] = ""
 					ActiveInput.ActiveStep = 5
 					state.Data["ActiveInput"] = ActiveInput
-					rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("🚫 Отмена ", "back")))
+					rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(config.GlobalSettings.Buttons[14].ButtonText, "back")))
 					text := (`<b>❗️Поле: "` + Input.Name + `"</b>` +
 						"\n\n<i>❔Введите минимальную зарплату</i>" +
 						"\n\n<b>🔎Предварительный просмотр</b>" +
@@ -785,7 +785,7 @@ func HandleAddInput(update *tgbotapi.Update, ctx *context.Context, InputID strin
 				price := strings.ReplaceAll(value, " ", "")
 				priceFloat, err := strconv.ParseFloat(price, 64)
 				if err != nil {
-					rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("🚫 Отмена ", "back")))
+					rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(config.GlobalSettings.Buttons[14].ButtonText, "back")))
 					text := "❗️Введите коректное числовое значение!"
 					msg := tgbotapi.NewEditMessageTextAndMarkup(
 						update.Message.Chat.ID,
@@ -797,7 +797,7 @@ func HandleAddInput(update *tgbotapi.Update, ctx *context.Context, InputID strin
 					return
 				}
 				if priceFloat > 10000000000000 {
-					rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("🚫 Отмена ", "back")))
+					rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(config.GlobalSettings.Buttons[14].ButtonText, "back")))
 					text := "❗️Вы ввели больше максимального значения!"
 					msg := tgbotapi.NewEditMessageTextAndMarkup(
 						update.Message.Chat.ID,
@@ -813,7 +813,7 @@ func HandleAddInput(update *tgbotapi.Update, ctx *context.Context, InputID strin
 				valueMap, _ := ActiveInput.Value.(map[uint]string)
 				valueMap[1] = utilits.FormatFloatWithSpaces(priceFloat) + " - "
 				state.Data["ActiveInput"] = ActiveInput
-				rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("🚫 Отмена ", "back")))
+				rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(config.GlobalSettings.Buttons[14].ButtonText, "back")))
 				text := (`<b>❗️Поле: "` + Input.Name + `"</b>` +
 					"\n\n<i>❔Введите максимальную зарпалту</i>" +
 					"\n\n<b>🔎Предварительный просмотр</b>" +
@@ -833,7 +833,7 @@ func HandleAddInput(update *tgbotapi.Update, ctx *context.Context, InputID strin
 				price := strings.ReplaceAll(value, " ", "")
 				priceFloat, err := strconv.ParseFloat(price, 64)
 				if err != nil {
-					rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("🚫 Отмена ", "back")))
+					rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(config.GlobalSettings.Buttons[14].ButtonText, "back")))
 					text := "❗️Введите коректное числовое значение!"
 					msg := tgbotapi.NewEditMessageTextAndMarkup(
 						update.Message.Chat.ID,
@@ -845,7 +845,7 @@ func HandleAddInput(update *tgbotapi.Update, ctx *context.Context, InputID strin
 					return
 				}
 				if priceFloat > 10000000000000 {
-					rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("🚫 Отмена ", "back")))
+					rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(config.GlobalSettings.Buttons[14].ButtonText, "back")))
 					text := "❗️Вы ввели больше максимального значения!"
 					msg := tgbotapi.NewEditMessageTextAndMarkup(
 						update.Message.Chat.ID,
@@ -861,8 +861,8 @@ func HandleAddInput(update *tgbotapi.Update, ctx *context.Context, InputID strin
 				valueMap, _ := ActiveInput.Value.(map[uint]string)
 				valueMap[1] += utilits.FormatFloatWithSpaces(priceFloat)
 				state.Data["ActiveInput"] = ActiveInput
-				rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("📋 Сохранить", "Save")))
-				rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("🚫 Отмена ", "back")))
+				rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(config.GlobalSettings.Buttons[15].ButtonText, "Save")))
+				rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(config.GlobalSettings.Buttons[14].ButtonText, "back")))
 				text := ("\n\n<b>🔎Предварительный просмотр</b>" +
 					"\n\n<b>" + Input.Name + "</b>: " + valueMap[1] + " " + valueMap[0])
 				msg := tgbotapi.NewEditMessageTextAndMarkup(
@@ -898,7 +898,7 @@ func HandleAddInput(update *tgbotapi.Update, ctx *context.Context, InputID strin
 					state.Data["ActiveInput"] = ActiveInput
 					rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("📌 Точное время", "Fix"), tgbotapi.NewInlineKeyboardButtonData("🔄 Приблизительное время", "Approximate")))
 					rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("📉📈 Временной диапазон", "Range")))
-					rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("🚫 Отмена ", "back")))
+					rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(config.GlobalSettings.Buttons[14].ButtonText, "back")))
 					text := (`<b>❗️Поле: "` + Input.Name + `"</b>` +
 						"\n\n<i>❔Выберите тип графика</i>" +
 						"\n\n<blockquote><i><b>📌 Точное время</b>: 18:00\n\n<b>🔄 Приблизительное время</b>: ~18:00\n\n<b>📉📈 Временной диапазон: 18:00-19:00</b></i></blockquote>" +
@@ -925,7 +925,7 @@ func HandleAddInput(update *tgbotapi.Update, ctx *context.Context, InputID strin
 					}
 					ActiveInput.ActiveStep = 3
 					state.Data["ActiveInput"] = ActiveInput
-					rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("🚫 Отмена ", "back")))
+					rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(config.GlobalSettings.Buttons[14].ButtonText, "back")))
 					text := (`<b>❗️Поле: "` + Input.Name + `"</b>` +
 						"\n\n<i>❔Введите время в формате <b>HH:mm</b></i>" +
 						"\n\n<b>🔎Предварительный просмотр</b>" +
@@ -944,7 +944,7 @@ func HandleAddInput(update *tgbotapi.Update, ctx *context.Context, InputID strin
 					valueMap[0] = ""
 					ActiveInput.ActiveStep = 2
 					state.Data["ActiveInput"] = ActiveInput
-					rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("🚫 Отмена ", "back")))
+					rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(config.GlobalSettings.Buttons[14].ButtonText, "back")))
 					text := (`<b>❗️Поле: "` + Input.Name + `"</b>` +
 						"\n\n<i>❔Введите время начала в формате <b>HH:mm</b></i>" +
 						"\n\n<b>🔎Предварительный просмотр</b>" +
@@ -966,7 +966,7 @@ func HandleAddInput(update *tgbotapi.Update, ctx *context.Context, InputID strin
 				regex := `^(?:[01]\d|2[0-3]):[0-5]\d$`
 				matched, _ := regexp.MatchString(regex, time)
 				if !matched {
-					rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("🚫 Отмена ", "back")))
+					rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(config.GlobalSettings.Buttons[14].ButtonText, "back")))
 					text := "❗️Ведите время в правильном формате <b>HH:mm</b>!"
 					msg := tgbotapi.NewEditMessageTextAndMarkup(
 						update.Message.Chat.ID,
@@ -982,7 +982,7 @@ func HandleAddInput(update *tgbotapi.Update, ctx *context.Context, InputID strin
 				valueMap, _ := ActiveInput.Value.(map[uint]string)
 				valueMap[0] += time + " - "
 				state.Data["ActiveInput"] = ActiveInput
-				rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("🚫 Отмена ", "back")))
+				rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(config.GlobalSettings.Buttons[14].ButtonText, "back")))
 				text := (`<b>❗️Поле: "` + Input.Name + `"</b>` +
 					"\n\n<i>❔Введите время окончания в формате <b>HH:mm</b></i>" +
 					"\n\n<b>🔎Предварительный просмотр</b>" +
@@ -1003,7 +1003,7 @@ func HandleAddInput(update *tgbotapi.Update, ctx *context.Context, InputID strin
 				regex := `^(?:[01]\d|2[0-3]):[0-5]\d$`
 				matched, _ := regexp.MatchString(regex, time)
 				if !matched {
-					rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("🚫 Отмена ", "back")))
+					rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(config.GlobalSettings.Buttons[14].ButtonText, "back")))
 					text := "❗️Ведите время в правильном формате <b>HH:mm</b>!"
 					msg := tgbotapi.NewEditMessageTextAndMarkup(
 						update.Message.Chat.ID,
@@ -1019,8 +1019,8 @@ func HandleAddInput(update *tgbotapi.Update, ctx *context.Context, InputID strin
 				valueMap, _ := ActiveInput.Value.(map[uint]string)
 				valueMap[0] += time
 				state.Data["ActiveInput"] = ActiveInput
-				rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("📋 Сохранить", "Save")))
-				rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("🚫 Отмена ", "back")))
+				rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(config.GlobalSettings.Buttons[15].ButtonText, "Save")))
+				rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(config.GlobalSettings.Buttons[14].ButtonText, "back")))
 				text := (`<b>❗️Поле: "` + Input.Name + `"</b>` +
 					"\n\n<b>🔎Предварительный просмотр</b>" +
 					"\n\n<b>" + Input.Name + "</b>: " + valueMap[0])
@@ -1068,7 +1068,7 @@ func HandleAddInput(update *tgbotapi.Update, ctx *context.Context, InputID strin
 
 						rows = append(rows, tgbotapi.NewInlineKeyboardRow(row...))
 					}
-					rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("🚫 Отмена ", "back")))
+					rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(config.GlobalSettings.Buttons[14].ButtonText, "back")))
 					text := (`<b>❗️Поле: "` + Input.Name + `"</b>` +
 						"\n\n<i>❔Выберите любое значение из списка ниже</i>" +
 						"\n\n<b>🔎Предварительный просмотр</b>" +
@@ -1093,8 +1093,8 @@ func HandleAddInput(update *tgbotapi.Update, ctx *context.Context, InputID strin
 					valueMap, _ := ActiveInput.Value.(map[uint]string)
 					valueMap[0] = CallbackQuery[1]
 					state.Data["ActiveInput"] = ActiveInput
-					rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("📋 Сохранить", "Save")))
-					rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("🚫 Отмена ", "back")))
+					rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(config.GlobalSettings.Buttons[15].ButtonText, "Save")))
+					rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(config.GlobalSettings.Buttons[14].ButtonText, "back")))
 					text := (`<b>❗️Поле: "` + Input.Name + `"</b>` +
 						"\n\n<b>🔎Предварительный просмотр</b>" +
 						"\n\n<b>" + Input.Name + "</b>: " + valueMap[0])
@@ -1127,7 +1127,7 @@ func HandleAddInput(update *tgbotapi.Update, ctx *context.Context, InputID strin
 		case 0:
 			if update.CallbackQuery != nil {
 				CallbackQuery := strings.Split(update.CallbackQuery.Data, "_")
-				if CallbackQuery[0] == "AddInput" || update.CallbackQuery.Data == "Edit" || update.CallbackQuery.Data == "nextCity" || update.CallbackQuery.Data == "backCity" || update.CallbackQuery.Data == "search" || update.CallbackQuery.Data == "BackToList" || CallbackQuery[0] == "City" || update.CallbackQuery.Data == "Save" || update.CallbackQuery.Data == "menuCityInfo" {
+				if CallbackQuery[0] == "AddInput" || update.CallbackQuery.Data == "Edit" || update.CallbackQuery.Data == "nextCity" || update.CallbackQuery.Data == "backCity" || update.CallbackQuery.Data == "search" || update.CallbackQuery.Data == "BackToList" || CallbackQuery[0] == "City" || update.CallbackQuery.Data == "Save" || update.CallbackQuery.Data == "menuCityInfo" || update.CallbackQuery.Data == "AllCountry" {
 					if update.CallbackQuery.Data == "nextCity" && len(ActiveInput.CitiesPages)-1 != int(ActiveInput.CurentPage) {
 						ActiveInput.CurentPage++
 						state.Data["ActiveInput"] = ActiveInput
@@ -1142,16 +1142,20 @@ func HandleAddInput(update *tgbotapi.Update, ctx *context.Context, InputID strin
 						ctx.BotAPI.Request(alert)
 						return
 					}
-					if update.CallbackQuery.Data == "Save" {
+					if update.CallbackQuery.Data == "Save" || update.CallbackQuery.Data == "AllCountry" {
 						var textActiveCities string = ""
-						if len(ActiveInput.ActiveCities) != 0 {
-							for i := range ActiveInput.ActiveCities {
-								textActiveCities += ActiveInput.ActiveCities[i].Title
-								if i+1 < len(ActiveInput.ActiveCities) {
-									textActiveCities += ", "
-								} else {
-									textActiveCities += "."
+						if len(ActiveInput.ActiveCities) != 0 || update.CallbackQuery.Data == "AllCountry" {
+							if update.CallbackQuery.Data == "Save" {
+								for i := range ActiveInput.ActiveCities {
+									textActiveCities += ActiveInput.ActiveCities[i].Title
+									if i+1 < len(ActiveInput.ActiveCities) {
+										textActiveCities += ", "
+									} else {
+										textActiveCities += "."
+									}
 								}
+							} else {
+								textActiveCities += "Вся страна/전국"
 							}
 							Input.Activate = true
 							Input.Value = textActiveCities
@@ -1265,6 +1269,7 @@ func HandleAddInput(update *tgbotapi.Update, ctx *context.Context, InputID strin
 							))
 						}
 					}
+					rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("Вся страна/전국 ", "AllCountry")))
 					rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("✩✩✩ ", "menuCityInfo")))
 					if len(ActiveInput.CitiesPages)-1 > int(currentPage) && currentPage != 0 {
 						rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("« Назад", "backCity"), tgbotapi.NewInlineKeyboardButtonData("🔎 Поиск", "search"), tgbotapi.NewInlineKeyboardButtonData("Дальше »", "nextCity")))
@@ -1275,8 +1280,8 @@ func HandleAddInput(update *tgbotapi.Update, ctx *context.Context, InputID strin
 					} else {
 						rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("🔎 Поиск", "search")))
 					}
-					rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("📋 Сохранить", "Save")))
-					rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("🚫 Отмена ", "back")))
+					rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(config.GlobalSettings.Buttons[15].ButtonText, "Save")))
+					rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(config.GlobalSettings.Buttons[14].ButtonText, "back")))
 					var textActiveCities string = ""
 					if len(ActiveInput.ActiveCities) != 0 {
 						textActiveCities += "<b>" + Input.Name + "</b>: "

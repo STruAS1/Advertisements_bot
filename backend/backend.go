@@ -1,6 +1,7 @@
 package backend
 
 import (
+	"fmt"
 	"net/http"
 	"tgbotBARAHOLKA/backend/routes"
 
@@ -9,6 +10,7 @@ import (
 )
 
 func StartBackend() {
+	fmt.Println("Запуск бэкенда")
 	r := chi.NewRouter()
 	r.Use(cors.Handler(cors.Options{
 		AllowedOrigins:   []string{"*"},
@@ -19,5 +21,8 @@ func StartBackend() {
 		MaxAge:           300,
 	}))
 	routes.RegisterRoutes(r)
-	http.ListenAndServe(":8080", r)
+	err := http.ListenAndServe(":8080", r)
+	if err != nil {
+		fmt.Println(err)
+	}
 }

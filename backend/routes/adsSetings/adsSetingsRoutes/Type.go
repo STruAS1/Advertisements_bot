@@ -15,6 +15,8 @@ type TypeRequest struct {
 	Cost     uint   `json:"Cost"`
 	Name     string `json:"Name"`
 	Priority uint   `json:"priority"`
+	AutoPost bool   `json:"AutoPost"`
+	HasLimit bool   `json:"HasLimit"`
 }
 type SuccessResponse struct {
 	Message string      `json:"message"`
@@ -72,10 +74,12 @@ func Type(r chi.Router) {
 		if err := db.DB.Model(&models.AdvertisementType{}).
 			Where("id = ?", uint(id)).
 			Updates(map[string]interface{}{
-				"is_free":  updateData.IsFree,
-				"name":     updateData.Name,
-				"Cost":     updateData.Cost,
-				"priority": updateData.Priority,
+				"is_free":   updateData.IsFree,
+				"name":      updateData.Name,
+				"Cost":      updateData.Cost,
+				"priority":  updateData.Priority,
+				"auto_post": updateData.AutoPost,
+				"has_limit": updateData.HasLimit,
 			}).Error; err != nil {
 			writeJSON(w, http.StatusInternalServerError, ErrorResponse{
 				Message: "Failed to update record",
@@ -126,6 +130,8 @@ func Type(r chi.Router) {
 			Name:     createData.Name,
 			Cost:     createData.Cost,
 			Priority: createData.Priority,
+			AutoPost: createData.AutoPost,
+			HasLimit: createData.HasLimit,
 		}
 
 		if err := db.DB.Create(&newType).Error; err != nil {

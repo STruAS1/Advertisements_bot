@@ -6,6 +6,8 @@ type AdvertisementType struct {
 	IsFree   bool   `gorm:"not null"`
 	Cost     uint   `gorm:"index;not null; default:0"`
 	Name     string `gorm:"size:255"`
+	AutoPost bool
+	HasLimit bool
 }
 
 func (AdvertisementType) TableName() string {

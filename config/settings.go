@@ -11,7 +11,7 @@ type Setings struct {
 	City             City
 	Payments         PaymentsSetings
 	Docs             Docs
-	Buttons          [6]Button
+	Buttons          [16]Button
 	WitheListDomines []string
 	VerificationCost uint
 }
@@ -71,6 +71,7 @@ func CreateDefaultSettings() {
 		VerificationCost: 2000,
 		Texts: Texts{
 			MainText: "Тест",
+			AddsMenu: "Тест",
 		},
 		City: City{
 			MaxCountOfCity: 10,
@@ -84,13 +85,23 @@ func CreateDefaultSettings() {
 			VideoUrl: "",
 			Text:     "Обучение",
 		},
-		Buttons: [6]Button{
+		Buttons: [16]Button{
 			{ButtonText: "Объявление", Discription: "Объявление"},
 			{ButtonText: "Обучение", Discription: "Обучение"},
 			{ButtonText: "Профиль", Discription: "Профиль"},
 			{ButtonText: "Подписаться на канал", Discription: "Подписаться на канал"},
 			{ButtonText: "Подписался", Discription: "Подписался"},
 			{ButtonText: "« Назад", Discription: "Кнопка назад"},
+			{ButtonText: "Пополнить баланс", Discription: "Пополнить баланс"},
+			{ButtonText: "Перевести средства", Discription: "Перевести средства"},
+			{ButtonText: "Добавить объявление", Discription: "Добавить объявление"},
+			{ButtonText: "Мои объявления", Discription: "Мои объявления"},
+			{ButtonText: "Пред просмотр", Discription: "Пред просмотр"},
+			{ButtonText: "Сохранить", Discription: "Сохранить"},
+			{ButtonText: "🗑️ Удалить", Discription: "🗑️ Удалить"},
+			{ButtonText: "✏️ Редактировать", Discription: "✏️ Редактировать"},
+			{ButtonText: "🚫 Отмена ", Discription: "✏️ Редактировать"},
+			{ButtonText: "📋 Сохранить", Discription: "📋 Сохранить"},
 		},
 		WitheListDomines: []string{
 			"youtube.com",

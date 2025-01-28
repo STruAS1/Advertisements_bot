@@ -4,6 +4,7 @@ import (
 	"tgbotBARAHOLKA/backend/routes/Advertisement"
 	globalsetings "tgbotBARAHOLKA/backend/routes/GlobalSetings"
 	users "tgbotBARAHOLKA/backend/routes/Users"
+	verification "tgbotBARAHOLKA/backend/routes/Verification"
 	"tgbotBARAHOLKA/backend/routes/adsSetings"
 	"tgbotBARAHOLKA/backend/routes/payments"
 
@@ -17,4 +18,5 @@ func RegisterRoutes(r *chi.Mux) {
 	globalsetings.RegisterAdsRoutes(r)
 	payments.RegisterAdsRoutes(r)
 	users.RegisterAdsRoutes(r)
+	verification.RegisterAdsRoutes(r)
 }

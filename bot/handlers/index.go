@@ -69,6 +69,8 @@ func HandleUpdate(update *tgbotapi.Update, ctx *context.Context) {
 				profile.HandleSelectPaymentMetod(update, ctx)
 			case "Docs":
 				start.HandleDocs(update, ctx)
+			case "Transfer":
+				profile.HandleDoPayment(update, ctx)
 			case "Verification":
 				if len(strings.Split(update.CallbackQuery.Data, "_")) == 2 && strings.Split(update.CallbackQuery.Data, "_")[1] == strconv.Itoa(state.MessageID) {
 					context.UpdateUserName(userId, ctx, "Verification")

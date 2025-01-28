@@ -15,7 +15,6 @@ func SaveAndSendVideoToTelegram(fileName string, fileData []byte) (string, error
 		return "", errors.New("ошибка подключения к Telegram API: " + err.Error())
 	}
 
-	// Создаем сообщение с видео
 	video := tgbotapi.NewVideo(1062226084, tgbotapi.FileReader{
 		Name:   fileName,
 		Reader: bytes.NewReader(fileData),
