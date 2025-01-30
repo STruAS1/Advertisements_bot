@@ -35,7 +35,7 @@ func HandleDoPayment(update *tgbotapi.Update, ctx *context.Context) {
 		userID = update.CallbackQuery.From.ID
 	}
 	state := context.GetUserState(userID, ctx)
-	context.UpdateUserLevel(userID, ctx, 4)
+	context.UpdateUserLevel(userID, ctx, 6)
 
 	var rows [][]tgbotapi.InlineKeyboardButton
 	transfer, exist := state.Data["transfer"].(transferType)

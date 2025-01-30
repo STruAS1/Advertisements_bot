@@ -3,6 +3,7 @@ package profile
 import (
 	"strings"
 	"tgbotBARAHOLKA/bot/context"
+	"tgbotBARAHOLKA/config"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
@@ -17,7 +18,9 @@ func Handle(update *tgbotapi.Update, ctx *context.Context, userID int64) {
 	case 3:
 		handleLvl3(update, ctx, userID)
 	case 4:
-		handleLvl4(update, ctx, userID)
+		handleLvl4(update, ctx)
+	case 6:
+		handleLvl6(update, ctx, userID)
 		// case 3:
 		// 	handleLvl3(update, ctx, userID)
 		// case 4:
@@ -67,23 +70,39 @@ func handleLvl2(update *tgbotapi.Update, ctx *context.Context, userID int64) {
 		HandleShowMetods(update, ctx)
 	}
 }
+
 func handleLvl3(update *tgbotapi.Update, ctx *context.Context, userID int64) {
 	if update.CallbackQuery != nil {
 		data := strings.Split(update.CallbackQuery.Data, "_")
+		state := context.GetUserState(userID, ctx)
 		if len(data) == 1 {
 			switch data[0] {
 			case "back":
-				state := context.GetUserState(userID, ctx)
 				delete(state.Data, "Payment")
 				HandleProfile(update, ctx)
 			case "confirm":
-				HandeleConfirmPayment(update, ctx)
+				context.UpdateUserLevel(userID, ctx, 4)
+				var rows [][]tgbotapi.InlineKeyboardButton
+				rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(config.GlobalSettings.Buttons[14].ButtonText, "back")))
+				msg := tgbotapi.NewEditMessageTextAndMarkup(
+					userID,
+					state.MessageID,
+					"Отправьте скрин перевода",
+					tgbotapi.NewInlineKeyboardMarkup(rows...),
+				)
+				msg.ParseMode = "HTML"
+				ctx.BotAPI.Send(msg)
 			}
 		}
 	}
 }
+func handleLvl4(update *tgbotapi.Update, ctx *context.Context) {
+	if update.Message != nil {
+		HandleGetPhoto(update, ctx)
+	}
+}
 
-func handleLvl4(update *tgbotapi.Update, ctx *context.Context, userID int64) {
+func handleLvl6(update *tgbotapi.Update, ctx *context.Context, userID int64) {
 	if update.CallbackQuery != nil {
 		switch update.CallbackQuery.Data {
 		case "back":

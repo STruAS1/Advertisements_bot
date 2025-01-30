@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"tgbotBARAHOLKA/db"
 	"tgbotBARAHOLKA/db/models"
+	"tgbotBARAHOLKA/utilits"
 
 	"github.com/go-chi/chi/v5"
 )
@@ -15,6 +16,10 @@ type SuccessResponse struct {
 	Data    interface{} `json:"data,omitempty"`
 }
 type ErrorResponse struct {
+	Message string `json:"message"`
+}
+
+type MessageRequest struct {
 	Message string `json:"message"`
 }
 
@@ -83,6 +88,9 @@ func GetAllUsers(r chi.Router) {
 				"CreatedAt":  user.CreatedAt,
 				"UserName":   user.Username,
 				"FL":         user.FirstName + " " + user.LastName,
+				"phone":      user.Phone,
+				"city":       user.City,
+				"TgID":       user.TelegramID,
 			}
 		}
 
@@ -95,6 +103,30 @@ func GetAllUsers(r chi.Router) {
 				"currentPage":    page,
 				"totalPages":     totalPages,
 			},
+		})
+	})
+	r.Post("/Alert", func(w http.ResponseWriter, r *http.Request) {
+		queryParams := r.URL.Query()
+		idStr := queryParams.Get("ID")
+		ID, err := strconv.ParseUint(idStr, 10, 32)
+		if err != nil {
+			http.Error(w, "Invalid ID: must be a positive integer", http.StatusBadRequest)
+			return
+		}
+		var Message MessageRequest
+		if err := json.NewDecoder(r.Body).Decode(&Message); err != nil {
+			http.Error(w, "Invalid JSON", http.StatusBadRequest)
+			return
+		}
+		var User models.User
+		db.DB.Where(models.User{ID: uint(ID)}).First(&User)
+		if User.TelegramID == 0 {
+			http.Error(w, "Invalid ID", http.StatusBadRequest)
+			return
+		}
+		utilits.SendMessageToUser(Message.Message, int64(User.TelegramID))
+		writeJSON(w, http.StatusOK, map[string]string{
+			"message": "Ok",
 		})
 	})
 }

@@ -44,7 +44,7 @@ func UpdateStatus(r chi.Router) {
 			if AD.User.Verification {
 				msgText += "\n✅ <i>Верификация пройдена</i>"
 			}
-			msgText += "\n\n👉<b><a href='https://t.me/" + AD.User.Username + "'>Написать автору</a></b>👈"
+			msgText += "\n\n👉 <b><a href='https://t.me/\u200B" + AD.User.Username + "'>Написать автору</a></b>"
 			msgText += "\n\n" + config.GlobalSettings.Ads.Sufix
 			msgId := utilits.SendMessageToChnale(msgText, AD.ImageID)
 			if err := db.DB.Model(&models.Advertisement{}).

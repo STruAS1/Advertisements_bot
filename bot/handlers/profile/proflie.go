@@ -8,6 +8,7 @@ import (
 	"tgbotBARAHOLKA/config"
 	"tgbotBARAHOLKA/db"
 	"tgbotBARAHOLKA/db/models"
+	"time"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
@@ -24,15 +25,23 @@ func HandleProfile(update *tgbotapi.Update, ctx *context.Context) {
 	} else {
 		userID = update.CallbackQuery.From.ID
 	}
+	seoulLocation, err := time.LoadLocation("Asia/Seoul")
+	if err != nil {
+		fmt.Println("Ошибка загрузки временной зоны:", err)
+		return
+	}
+
 	state := context.GetUserState(userID, ctx)
 	context.UpdateUserLevel(userID, ctx, 0)
 	var rows [][]tgbotapi.InlineKeyboardButton
 	var user models.User
 	db.DB.Where("telegram_id = ?", userID).First(&user)
-	text := "<b>" + user.FirstName + " " + user.LastName + "</b>"
-	text += "\n<b>ID</b>: <code>" + strconv.Itoa(int(userID)) + "</code>"
-	text += "\n\n<b>Населенный пункт</b>: <code>" + user.City + "</code>"
-	text += "\n\n<b>Баланс</b>: " + strconv.Itoa(int(user.Balance))
+	kstTime := user.CreatedAt.In(seoulLocation)
+	formattedDate := kstTime.Format("2006.01.02")
+	text := fmt.Sprintf(
+		"<b>%s %s</b>\n<b>ID</b>: <code>%d</code>\n<b>Телефон</b>: <code>%s</code>\n<b>Населенный пункт</b>: <code>%s</code>\n<b>Дата регистрации</b>: <code>%s</code>\n<b>Баланс</b>: %d",
+		user.FirstName, user.LastName, userID, user.Phone, user.City, formattedDate, user.Balance,
+	)
 	var CountOfAds int64
 	db.DB.Model(&models.Advertisement{}).Where(&models.Advertisement{UserID: user.ID}).Count(&CountOfAds)
 	var AprovedCounOFAds int64
@@ -71,7 +80,7 @@ func HandleProfile(update *tgbotapi.Update, ctx *context.Context) {
 		tgbotapi.NewInlineKeyboardMarkup(rows...),
 	)
 	msg.ParseMode = "HTML"
-	_, err := ctx.BotAPI.Send(msg)
+	_, err = ctx.BotAPI.Send(msg)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -101,8 +110,9 @@ func HandleSelectPaymentMetod(update *tgbotapi.Update, ctx *context.Context) {
 }
 
 type Payment struct {
-	Metod  config.PaymentsMetod
-	Amount float64
+	Metod   config.PaymentsMetod
+	Amount  float64
+	PhotoId string
 }
 
 func HandlePaymentEntryAmount(update *tgbotapi.Update, ctx *context.Context) {
@@ -177,7 +187,7 @@ func HandleShowMetods(update *tgbotapi.Update, ctx *context.Context) {
 	rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("✅ Подтвердить ", "confirm")))
 	rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(config.GlobalSettings.Buttons[14].ButtonText, "back")))
 	var text string = "<b>" + payment.Metod.Title + "</b>\n\n"
-	text += payment.Metod.Title + "\n\n<b><i>Реквизиты:</i></b>"
+	text += payment.Metod.Discription + "\n\n<b><i>Реквизиты: </i></b>"
 	text += payment.Metod.Cardnumber
 	payment.Amount = priceFloat
 	state.Data["Payment"] = payment
@@ -191,18 +201,46 @@ func HandleShowMetods(update *tgbotapi.Update, ctx *context.Context) {
 	ctx.BotAPI.Send(msg)
 	context.UpdateUserLevel(userID, ctx, 3)
 }
+func HandleGetPhoto(update *tgbotapi.Update, ctx *context.Context) {
+	userID := update.Message.From.ID
+	deleteMsg1 := tgbotapi.DeleteMessageConfig{
+		ChatID:    userID,
+		MessageID: update.Message.MessageID,
+	}
+	state := context.GetUserState(userID, ctx)
+	ctx.BotAPI.Send(deleteMsg1)
+	if update.Message != nil && update.Message.Photo != nil {
+		payment := state.Data["Payment"].(Payment)
+		photoID := update.Message.Photo[len(update.Message.Photo)-1].FileID
+		payment.PhotoId = photoID
+		state.Data["Payment"] = payment
+		HandeleConfirmPayment(update, ctx)
+		return
+	} else {
+		var rows [][]tgbotapi.InlineKeyboardButton
+		rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(config.GlobalSettings.Buttons[14].ButtonText, "back")))
+		msg := tgbotapi.NewEditMessageTextAndMarkup(
+			userID,
+			state.MessageID,
+			"Отпарьте фотографию",
+			tgbotapi.NewInlineKeyboardMarkup(rows...),
+		)
+		ctx.BotAPI.Send(msg)
+	}
+}
 
 func HandeleConfirmPayment(update *tgbotapi.Update, ctx *context.Context) {
-	userID := update.CallbackQuery.From.ID
+	userID := update.Message.From.ID
 	state := context.GetUserState(userID, ctx)
 	payment := state.Data["Payment"].(Payment)
 	var user models.User
 	db.DB.Where("telegram_id = ?", userID).First(&user)
 	newPayment := models.Payments{
-		Metod:  "(" + payment.Metod.Title + ")" + payment.Metod.Cardnumber,
-		Amount: uint(payment.Amount),
-		UserID: uint(user.ID),
-		Status: 0,
+		Metod:    "(" + payment.Metod.Title + ")" + payment.Metod.Cardnumber,
+		Amount:   uint(payment.Amount),
+		UserID:   uint(user.ID),
+		PhotoUrl: payment.PhotoId,
+		Status:   0,
 	}
 	db.DB.Create(&newPayment)
 	delete(state.Data, "Payment")

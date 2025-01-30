@@ -2,6 +2,7 @@ package verifictionroutes
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
 	"tgbotBARAHOLKA/config"
@@ -21,7 +22,8 @@ type ErrorResponse struct {
 }
 
 type UpdateStatusRequest struct {
-	Status uint8 `json:"Status"`
+	Status uint8  `json:"Status"`
+	Msg    string `json:"message"`
 }
 
 func WriteJSON(w http.ResponseWriter, status int, data interface{}) {
@@ -107,6 +109,7 @@ func Aplications(r chi.Router) {
 				"DocumentFileUrl": DocumentFileUrl,
 				"UserName":        Aplication.User.Username,
 				"FL":              Aplication.User.FirstName + " " + Aplication.User.LastName,
+				"phone":           Aplication.User.Phone,
 			}
 		}
 		totalPages := (totalRecords + int64(limit) - 1) / int64(limit)
@@ -162,7 +165,11 @@ func Aplications(r chi.Router) {
 				})
 				return
 			}
-			utilits.SendMessageToUser("✅ Ваша заявка на верификацию успешно подтверждена!", int64(Aplication.User.TelegramID))
+			text := "✅ Ваша заявка на верификацию успешно подтверждена!"
+			if UpdateStatus.Msg != "" {
+				text += fmt.Sprintf("\n\n%s", UpdateStatus.Msg)
+			}
+			utilits.SendMessageToUser(text, int64(Aplication.User.TelegramID))
 			WriteJSON(w, http.StatusOK, map[string]string{
 				"message": "Ok",
 			})
@@ -177,7 +184,11 @@ func Aplications(r chi.Router) {
 				})
 				return
 			}
-			utilits.SendMessageToUser("❌ К сожалению, ваша заявка на верификацию была отклонена.", int64(Aplication.User.TelegramID))
+			text := "❌ К сожалению, ваша заявка на верификацию была отклонена."
+			if UpdateStatus.Msg != "" {
+				text += fmt.Sprintf("\n\n%s", UpdateStatus.Msg)
+			}
+			utilits.SendMessageToUser(text, int64(Aplication.User.TelegramID))
 			WriteJSON(w, http.StatusOK, map[string]string{
 				"message": "Ok",
 			})

@@ -21,6 +21,7 @@ func SendMessageToChnale(message, photoUrl string) int {
 	} else {
 		msg := tgbotapi.NewMessageToChannel(cfg.Bot.ChannelId, message)
 		msg.ParseMode = "HTML"
+		msg.DisableWebPagePreview = true
 		ms, err = botAPI.Send(msg)
 	}
 	if err != nil {

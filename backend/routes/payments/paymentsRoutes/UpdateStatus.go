@@ -2,6 +2,7 @@ package paymentsroutes
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
 	"tgbotBARAHOLKA/db"
@@ -12,7 +13,8 @@ import (
 )
 
 type UpdateStatusRequest struct {
-	Status uint8 `json:"Status"`
+	Status uint8  `json:"Status"`
+	Msg    string `json:"message"`
 }
 
 func UpdateStatus(r chi.Router) {
@@ -53,6 +55,9 @@ func UpdateStatus(r chi.Router) {
 				return
 			}
 			text := "💸Ваша заявка на пополнение " + strconv.Itoa(int(Payment.Amount)) + "₩ принята!"
+			if UpdateStatus.Msg != "" {
+				text += fmt.Sprintf("\n\n%s", UpdateStatus.Msg)
+			}
 			utilits.SendMessageToUser(text, Payment.User.TelegramID)
 			writeJSON(w, http.StatusOK, map[string]string{
 				"message": "Ok",
@@ -67,6 +72,9 @@ func UpdateStatus(r chi.Router) {
 				return
 			}
 			text := "🚫Ваша заявка на пополнение " + strconv.Itoa(int(Payment.Amount)) + "₩ отклонена!"
+			if UpdateStatus.Msg != "" {
+				text += fmt.Sprintf("\n\n%s", UpdateStatus.Msg)
+			}
 			utilits.SendMessageToUser(text, Payment.User.TelegramID)
 			writeJSON(w, http.StatusOK, map[string]string{
 				"message": "Ok",

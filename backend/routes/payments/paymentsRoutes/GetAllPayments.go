@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"tgbotBARAHOLKA/db"
 	"tgbotBARAHOLKA/db/models"
+	"tgbotBARAHOLKA/utilits"
 
 	"github.com/go-chi/chi/v5"
 )
@@ -93,6 +94,7 @@ func GetAllPayments(r chi.Router) {
 		}
 		paymentSorted := make([]map[string]interface{}, len(payments))
 		for i, payment := range payments {
+			photoLink, _ := utilits.GetPhotoLink(payment.PhotoUrl)
 			paymentSorted[i] = map[string]interface{}{
 				"ID":        payment.ID,
 				"Metod":     payment.Metod,
@@ -102,6 +104,7 @@ func GetAllPayments(r chi.Router) {
 				"UserID":    payment.UserID,
 				"UserName":  payment.User.Username,
 				"FL":        payment.User.FirstName + " " + payment.User.LastName,
+				"photoLink": photoLink,
 			}
 		}
 
