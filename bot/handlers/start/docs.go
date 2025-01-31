@@ -15,13 +15,12 @@ func HandleDocs(update *tgbotapi.Update, ctx *context.Context) {
 	var rows [][]tgbotapi.InlineKeyboardButton
 	docs := config.GlobalSettings.Docs
 	rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(config.GlobalSettings.Buttons[5].ButtonText, "back")))
-	if docs.VideoUrl != "" {
+	if docs.VideoUrl != docs.VideoID {
 		deleteMsg1 := tgbotapi.DeleteMessageConfig{
 			ChatID:    userID,
 			MessageID: state.MessageID,
 		}
 		ctx.BotAPI.Send(deleteMsg1)
-
 		video := tgbotapi.NewVideo(userID, tgbotapi.FileID(docs.VideoID))
 		video.ParseMode = "HTML"
 		vidoeMassge, err := ctx.BotAPI.Send(video)
