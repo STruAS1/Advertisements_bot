@@ -9,5 +9,6 @@ import (
 func RegisterAdsRoutes(r chi.Router) {
 	r.Route("/Users", func(r chi.Router) {
 		usersroutes.GetAllUsers(r)
+		usersroutes.BanRoutes(r)
 	})
 }

@@ -124,6 +124,19 @@ func Aplications(r chi.Router) {
 			},
 		})
 	})
+	r.Delete("/Aplication", func(w http.ResponseWriter, r *http.Request) {
+		queryParams := r.URL.Query()
+		idStr := queryParams.Get("ID")
+		ID, err := strconv.ParseUint(idStr, 10, 32)
+		if err != nil {
+			http.Error(w, "Invalid ID: must be a positive integer", http.StatusBadRequest)
+			return
+		}
+		db.DB.Delete(&models.VerificationAplication{}, ID)
+		WriteJSON(w, http.StatusOK, map[string]string{
+			"message": "Ok",
+		})
+	})
 	r.Put("/Aplication", func(w http.ResponseWriter, r *http.Request) {
 		queryParams := r.URL.Query()
 		idStr := queryParams.Get("ID")

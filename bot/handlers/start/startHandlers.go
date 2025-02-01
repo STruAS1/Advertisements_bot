@@ -19,9 +19,11 @@ func Handle(update *tgbotapi.Update, ctx *context.Context, userID int64) {
 	case 2:
 		handleLvl2(update, ctx)
 	case 3:
-		handelLvl3(update, ctx, userID)
+		handelLvl3(update, ctx)
 	case 4:
 		handleLvl4(update, ctx, userID)
+	case 5:
+		handelLvl5(update, ctx, userID)
 	}
 
 }
@@ -78,8 +80,22 @@ func handleLvl4(update *tgbotapi.Update, ctx *context.Context, userID int64) {
 		ChooseCityHandler(update, ctx)
 	}
 }
+func handelLvl3(update *tgbotapi.Update, ctx *context.Context) {
+	if update.CallbackQuery != nil {
+		data := strings.Split(update.CallbackQuery.Data, "_")
+		switch data[0] {
+		case "back":
+			HandleStartCommand(update, ctx)
+		case "doc":
+			if len(data) == 2 {
+				Index, _ := strconv.Atoi(data[1])
+				HandleDocs(update, ctx, Index)
+			}
+		}
+	}
+}
 
-func handelLvl3(update *tgbotapi.Update, ctx *context.Context, userID int64) {
+func handelLvl5(update *tgbotapi.Update, ctx *context.Context, userID int64) {
 	if update.CallbackQuery != nil {
 		switch update.CallbackQuery.Data {
 		case "back":
@@ -93,7 +109,7 @@ func handelLvl3(update *tgbotapi.Update, ctx *context.Context, userID int64) {
 				ctx.BotAPI.Send(deleteMsg1)
 				delete(state.Data, "LastVideoMassgeID")
 			}
-			HandleStartCommand(update, ctx)
+			HandleSelectDocs(update, ctx)
 		}
 	}
 }

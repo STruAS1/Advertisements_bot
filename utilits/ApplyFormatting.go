@@ -5,9 +5,59 @@ import (
 	"regexp"
 	"sort"
 	"strings"
+	"tgbotBARAHOLKA/db/models"
+	"time"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
+
+func FormatBanMessage(user models.User) string {
+	isBan, unbanDate := user.IsBanned()
+	if !isBan {
+		return ""
+	}
+
+	if unbanDate == nil {
+		return "⛔ Вас заблокировали <b>навсегда</b>."
+	}
+
+	now := time.Now()
+	duration := unbanDate.Sub(now)
+
+	totalHours := int(duration.Hours())
+	years := totalHours / (24 * 365)
+	months := (totalHours / (24 * 30)) % 12
+	weeks := (totalHours / (24 * 7)) % 4
+	days := (totalHours / 24) % 7
+	hours := totalHours % 24
+	minutes := int(duration.Minutes()) % 60
+	seconds := int(duration.Seconds()) % 60
+
+	var timeParts []string
+	if years > 0 {
+		timeParts = append(timeParts, fmt.Sprintf("%d лет", years))
+	}
+	if months > 0 {
+		timeParts = append(timeParts, fmt.Sprintf("%d месяцев", months))
+	}
+	if weeks > 0 {
+		timeParts = append(timeParts, fmt.Sprintf("%d недель", weeks))
+	}
+	if days > 0 {
+		timeParts = append(timeParts, fmt.Sprintf("%d дней", days))
+	}
+	if hours > 0 {
+		timeParts = append(timeParts, fmt.Sprintf("%d часов", hours))
+	}
+	if minutes > 0 {
+		timeParts = append(timeParts, fmt.Sprintf("%d минут", minutes))
+	}
+	if seconds > 0 && len(timeParts) == 0 {
+		timeParts = append(timeParts, fmt.Sprintf("%d секунд", seconds))
+	}
+
+	return fmt.Sprintf("⛔ Вас заблокировали.\nРазблокировка через: %s.", strings.Join(timeParts, ", "))
+}
 
 func removeHTMLTags(input string) string {
 	re := regexp.MustCompile(`<[^>]*>`)

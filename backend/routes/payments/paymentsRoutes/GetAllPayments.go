@@ -119,4 +119,17 @@ func GetAllPayments(r chi.Router) {
 			},
 		})
 	})
+	r.Delete("/payment", func(w http.ResponseWriter, r *http.Request) {
+		queryParams := r.URL.Query()
+		idStr := queryParams.Get("ID")
+		ID, err := strconv.ParseUint(idStr, 10, 32)
+		if err != nil {
+			http.Error(w, "Invalid ID: must be a positive integer", http.StatusBadRequest)
+			return
+		}
+		db.DB.Delete(&models.Payments{}, ID)
+		writeJSON(w, http.StatusOK, map[string]string{
+			"message": "Ok",
+		})
+	})
 }

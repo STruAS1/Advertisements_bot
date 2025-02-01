@@ -60,3 +60,33 @@ func DeleteMessageFromChanel(massgeID int) error {
 	}
 	return nil
 }
+
+func CheckAndKickUserFromChannel(userID int64) error {
+	cfg := config.LoadConfig()
+	botAPI, _ := tgbotapi.NewBotAPI(cfg.Bot.Token)
+
+	chatMember, err := botAPI.GetChatMember(tgbotapi.GetChatMemberConfig{
+		ChatConfigWithUser: tgbotapi.ChatConfigWithUser{
+			SuperGroupUsername: cfg.Bot.ChannelId,
+			UserID:             userID,
+		},
+	})
+	if err != nil {
+		return fmt.Errorf("ошибка получения информации о пользователе: %v", err)
+	}
+
+	if chatMember.Status == "left" || chatMember.Status == "kicked" {
+		kickConfig := tgbotapi.KickChatMemberConfig{
+			ChatMemberConfig: tgbotapi.ChatMemberConfig{
+				SuperGroupUsername: cfg.Bot.ChannelId,
+				UserID:             userID,
+			},
+		}
+		if _, err := botAPI.Send(kickConfig); err != nil {
+			return fmt.Errorf("ошибка кика пользователя: %v", err)
+		}
+		return nil
+	}
+
+	return fmt.Errorf("пользователь уже состоит в канале")
+}

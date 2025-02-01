@@ -27,7 +27,7 @@ func Payments(r chi.Router) {
 			paymentsWithIndex[i] = map[string]interface{}{
 				"index":       i,
 				"Title":       method.Title,
-				"Cardnumber":  method.Title,
+				"Cardnumber":  method.Cardnumber,
 				"Description": method.Discription,
 			}
 		}

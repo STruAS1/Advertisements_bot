@@ -2,12 +2,14 @@ package adsroutes
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
 	"tgbotBARAHOLKA/config"
 	"tgbotBARAHOLKA/db"
 	"tgbotBARAHOLKA/db/models"
 	"tgbotBARAHOLKA/utilits"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 )
@@ -106,6 +108,48 @@ func UpdateStatus(r chi.Router) {
 			"message": "Ok",
 		})
 	})
+	r.Delete("/ad/FromDB", func(w http.ResponseWriter, r *http.Request) {
+		queryParams := r.URL.Query()
+		idStr := queryParams.Get("ID")
+		ID, err := strconv.ParseUint(idStr, 10, 32)
+		if err != nil {
+			http.Error(w, "Invalid ID: must be a positive integer", http.StatusBadRequest)
+			return
+		}
+		db.DB.Delete(&models.Advertisement{}, ID)
+		writeJSON(w, http.StatusOK, map[string]string{
+			"message": "Ok",
+		})
+	})
+	r.Put("/ads/FromDB", func(w http.ResponseWriter, r *http.Request) {
+		var req struct {
+			StartDate time.Time `json:"start_date"`
+			EndDate   time.Time `json:"end_date"`
+		}
+
+		err := json.NewDecoder(r.Body).Decode(&req)
+		if err != nil {
+			fmt.Println("Ошибка разбора JSON:", err)
+			http.Error(w, "Invalid JSON format", http.StatusBadRequest)
+			return
+		}
+
+		if req.StartDate.IsZero() || req.EndDate.IsZero() {
+			http.Error(w, "StartDate and EndDate cannot be empty", http.StatusBadRequest)
+			return
+		}
+
+		result := db.DB.Where("created_at BETWEEN ? AND ?", req.StartDate, req.EndDate).Delete(&models.Advertisement{})
+		if result.Error != nil {
+			http.Error(w, "Failed to delete records", http.StatusInternalServerError)
+			return
+		}
+
+		writeJSON(w, http.StatusOK, map[string]interface{}{
+			"message": "Ok",
+			"deleted": result.RowsAffected,
+		})
+	})
 	r.Delete("/ad/FromChannel", func(w http.ResponseWriter, r *http.Request) {
 		queryParams := r.URL.Query()
 		idStr := queryParams.Get("ID")
@@ -115,7 +159,7 @@ func UpdateStatus(r chi.Router) {
 			return
 		}
 		var AD models.Advertisement
-		db.DB.Preload("User").Where(models.Advertisement{ID: uint(ID)}).First(&AD)
+		db.DB.Preload("User").Where(&models.Advertisement{ID: uint(ID)}).First(&AD)
 		if AD.Status != 1 && AD.DeletedFromChannel {
 			http.Error(w, "Failed to delete record", http.StatusInternalServerError)
 			return
@@ -142,7 +186,7 @@ func UpdateStatus(r chi.Router) {
 			return
 		}
 		var AD models.Advertisement
-		db.DB.Preload("User").Where(models.Advertisement{ID: uint(ID)}).First(&AD)
+		db.DB.Preload("User").Where(&models.Advertisement{ID: uint(ID)}).First(&AD)
 		if AD.Status != 1 && !AD.DeletedFromChannel {
 			http.Error(w, "Failed to delete record", http.StatusInternalServerError)
 			return

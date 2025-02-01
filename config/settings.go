@@ -10,7 +10,7 @@ type Setings struct {
 	Texts            Texts
 	City             City
 	Payments         PaymentsSetings
-	Docs             Docs
+	Docs             []Docs
 	Buttons          [16]Button
 	WitheListDomines []string
 	VerificationCost uint
@@ -35,6 +35,7 @@ type PaymentsMetod struct {
 type Texts struct {
 	MainText string
 	AddsMenu string
+	DocsText string
 }
 type Button struct {
 	ButtonText  string
@@ -45,9 +46,9 @@ type City struct {
 	MaxCountOfCity int8
 }
 type Docs struct {
-	VideoUrl string
-	VideoID  string
-	Text     string
+	ButtonName string
+	VideoID    string
+	Text       string
 }
 
 var GlobalSettings Setings
@@ -81,10 +82,10 @@ func CreateDefaultSettings() {
 			MinimalAmount: 100,
 			MaxAmount:     1000000000,
 		},
-		Docs: Docs{
-			VideoUrl: "",
-			Text:     "Обучение",
-		},
+		Docs: []Docs{{
+			ButtonName: "Обучение",
+			Text:       "Обучение",
+		}},
 		Buttons: [16]Button{
 			{ButtonText: "Объявление", Discription: "Объявление"},
 			{ButtonText: "Обучение", Discription: "Обучение"},

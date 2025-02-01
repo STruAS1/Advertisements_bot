@@ -8,14 +8,36 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
-func HandleDocs(update *tgbotapi.Update, ctx *context.Context) {
+func HandleSelectDocs(update *tgbotapi.Update, ctx *context.Context) {
 	userID := update.CallbackQuery.From.ID
 	state := context.GetUserState(userID, ctx)
 	context.UpdateUserLevel(userID, ctx, 3)
 	var rows [][]tgbotapi.InlineKeyboardButton
 	docs := config.GlobalSettings.Docs
+	for i, doc := range docs {
+		rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(doc.ButtonName, fmt.Sprintf("doc_%d", i))))
+	}
 	rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(config.GlobalSettings.Buttons[5].ButtonText, "back")))
-	if docs.VideoUrl != docs.VideoID {
+	msg := tgbotapi.NewEditMessageTextAndMarkup(
+		userID,
+		state.MessageID,
+		"тест",
+		tgbotapi.NewInlineKeyboardMarkup(rows...),
+	)
+	msg.ParseMode = "HTML"
+	ctx.BotAPI.Send(msg)
+}
+func HandleDocs(update *tgbotapi.Update, ctx *context.Context, IndexDocs int) {
+	userID := update.CallbackQuery.From.ID
+	state := context.GetUserState(userID, ctx)
+	context.UpdateUserLevel(userID, ctx, 5)
+	if len(config.GlobalSettings.Docs) < IndexDocs+1 {
+		return
+	}
+	var rows [][]tgbotapi.InlineKeyboardButton
+	docs := config.GlobalSettings.Docs[IndexDocs]
+	rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(config.GlobalSettings.Buttons[5].ButtonText, "back")))
+	if docs.VideoID != "" {
 		deleteMsg1 := tgbotapi.DeleteMessageConfig{
 			ChatID:    userID,
 			MessageID: state.MessageID,

@@ -68,7 +68,7 @@ func HandleUpdate(update *tgbotapi.Update, ctx *context.Context) {
 			case "+balance":
 				profile.HandleSelectPaymentMetod(update, ctx)
 			case "Docs":
-				start.HandleDocs(update, ctx)
+				start.HandleSelectDocs(update, ctx)
 			case "Transfer":
 				profile.HandleDoPayment(update, ctx)
 			case "Verification":

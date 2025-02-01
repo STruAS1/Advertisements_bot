@@ -7,6 +7,7 @@ import (
 	"tgbotBARAHOLKA/config"
 	"tgbotBARAHOLKA/db"
 	"tgbotBARAHOLKA/db/models"
+	"tgbotBARAHOLKA/utilits"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
@@ -27,7 +28,7 @@ func HandleStartCommand(update *tgbotapi.Update, ctx *context.Context) {
 	context.UpdateUserLevel(userID, ctx, 0)
 	state := context.GetUserState(userID, ctx)
 	var user models.User
-	result := db.DB.Where("telegram_id = ?", userID).First(&user)
+	result := db.DB.Preload("Bans").Where("telegram_id = ?", userID).First(&user)
 	inlineKeyboard := tgbotapi.NewInlineKeyboardMarkup(
 		[]tgbotapi.InlineKeyboardButton{
 			tgbotapi.NewInlineKeyboardButtonData(config.GlobalSettings.Buttons[0].ButtonText, "adsMenu"), tgbotapi.NewInlineKeyboardButtonData(config.GlobalSettings.Buttons[2].ButtonText, "profile"),
@@ -37,6 +38,12 @@ func HandleStartCommand(update *tgbotapi.Update, ctx *context.Context) {
 		},
 	)
 	if result.Error == nil {
+		isBan, _ := user.IsBanned()
+		if isBan {
+			msg := tgbotapi.NewMessage(userID, utilits.FormatBanMessage(user))
+			ctx.SendMessage(msg)
+			return
+		}
 		if state.MessageID != 0 {
 			msg := tgbotapi.NewEditMessageTextAndMarkup(userID, state.MessageID, config.GlobalSettings.Texts.MainText+"ㅤ", inlineKeyboard)
 			ctx.BotAPI.Send(msg)
