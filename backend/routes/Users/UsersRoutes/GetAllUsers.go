@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"regexp"
 	"strconv"
 	"tgbotBARAHOLKA/db"
 	"tgbotBARAHOLKA/db/models"
@@ -34,6 +35,41 @@ type BanRequest struct {
 	Reason   string `json:"reason"`
 }
 
+func parseCustomDuration(input string) (time.Duration, error) {
+	re := regexp.MustCompile(`(\d+)([a-zA-Z]+)`) // Ищем число + суффикс (например, "2d")
+	matches := re.FindAllStringSubmatch(input, -1)
+
+	var totalDuration time.Duration
+	for _, match := range matches {
+		if len(match) != 3 {
+			return 0, fmt.Errorf("invalid duration format")
+		}
+		value, err := strconv.Atoi(match[1])
+		if err != nil {
+			return 0, fmt.Errorf("invalid number in duration")
+		}
+		unit := match[2]
+
+		switch unit {
+		case "m":
+			totalDuration += time.Duration(value) * time.Minute
+		case "h":
+			totalDuration += time.Duration(value) * time.Hour
+		case "d":
+			totalDuration += time.Duration(value) * 24 * time.Hour
+		case "w":
+			totalDuration += time.Duration(value) * 7 * 24 * time.Hour
+		case "mo":
+			totalDuration += time.Duration(value) * 30 * 24 * time.Hour
+		case "y":
+			totalDuration += time.Duration(value) * 365 * 24 * time.Hour
+		default:
+			return 0, fmt.Errorf("unsupported duration unit: %s", unit)
+		}
+	}
+
+	return totalDuration, nil
+}
 func writeJSON(w http.ResponseWriter, status int, data interface{}) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
@@ -219,6 +255,7 @@ func BanRoutes(r chi.Router) {
 			http.Error(w, "Invalid ID: must be a positive integer", http.StatusBadRequest)
 			return
 		}
+
 		var req BanRequest
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 			http.Error(w, "Invalid JSON", http.StatusBadRequest)
@@ -230,9 +267,11 @@ func BanRoutes(r chi.Router) {
 			writeJSON(w, http.StatusNotFound, map[string]string{"message": "User not found"})
 			return
 		}
-		msgText := fmt.Sprintf("🚫Вас заблокировали!\nПричина: %s", req.Reason)
+
+		msgText := fmt.Sprintf("🚫 Вас заблокировали!\nПричина: %s", req.Reason)
+
 		if req.Duration != "" {
-			duration, err := time.ParseDuration(req.Duration)
+			duration, err := parseCustomDuration(req.Duration)
 			if err != nil {
 				writeJSON(w, http.StatusBadRequest, map[string]string{"message": "Invalid duration format"})
 				return
@@ -242,6 +281,7 @@ func BanRoutes(r chi.Router) {
 		} else {
 			models.BanUserForever(db.DB, user.ID, req.Reason)
 		}
+
 		utilits.CheckAndKickUserFromChannel(user.TelegramID)
 		utilits.SendMessageToUser(msgText, int64(user.TelegramID))
 		writeJSON(w, http.StatusOK, map[string]string{"message": "User banned successfully"})
