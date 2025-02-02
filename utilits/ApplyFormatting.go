@@ -35,25 +35,25 @@ func FormatBanMessage(user models.User) string {
 
 	var timeParts []string
 	if years > 0 {
-		timeParts = append(timeParts, fmt.Sprintf("%d лет", years))
+		timeParts = append(timeParts, fmt.Sprintf("%d г", years))
 	}
 	if months > 0 {
-		timeParts = append(timeParts, fmt.Sprintf("%d месяцев", months))
+		timeParts = append(timeParts, fmt.Sprintf("%d мес", months))
 	}
 	if weeks > 0 {
-		timeParts = append(timeParts, fmt.Sprintf("%d недель", weeks))
+		timeParts = append(timeParts, fmt.Sprintf("%d нед", weeks))
 	}
 	if days > 0 {
-		timeParts = append(timeParts, fmt.Sprintf("%d дней", days))
+		timeParts = append(timeParts, fmt.Sprintf("%d д", days))
 	}
 	if hours > 0 {
-		timeParts = append(timeParts, fmt.Sprintf("%d часов", hours))
+		timeParts = append(timeParts, fmt.Sprintf("%d ч", hours))
 	}
 	if minutes > 0 {
-		timeParts = append(timeParts, fmt.Sprintf("%d минут", minutes))
+		timeParts = append(timeParts, fmt.Sprintf("%d мин", minutes))
 	}
 	if seconds > 0 && len(timeParts) == 0 {
-		timeParts = append(timeParts, fmt.Sprintf("%d секунд", seconds))
+		timeParts = append(timeParts, fmt.Sprintf("%d сек", seconds))
 	}
 
 	return fmt.Sprintf("⛔ Вас заблокировали.\nРазблокировка через: %s.", strings.Join(timeParts, ", "))

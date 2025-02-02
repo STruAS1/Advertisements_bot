@@ -21,7 +21,7 @@ func HandleSelectDocs(update *tgbotapi.Update, ctx *context.Context) {
 	msg := tgbotapi.NewEditMessageTextAndMarkup(
 		userID,
 		state.MessageID,
-		"тест",
+		config.GlobalSettings.Texts.DocsText,
 		tgbotapi.NewInlineKeyboardMarkup(rows...),
 	)
 	msg.ParseMode = "HTML"

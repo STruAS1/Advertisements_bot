@@ -49,9 +49,8 @@ func Docs(r chi.Router) {
 			return
 		}
 
-		newText := r.FormValue("text")
+		newText := r.FormValue("Text")
 		newButtonName := r.FormValue("ButtonName")
-
 		var fileID string
 		if file, header, err := r.FormFile("video"); err == nil {
 			defer file.Close()

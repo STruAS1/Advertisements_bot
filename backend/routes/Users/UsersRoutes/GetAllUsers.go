@@ -268,22 +268,24 @@ func BanRoutes(r chi.Router) {
 			return
 		}
 
-		msgText := fmt.Sprintf("🚫 Вас заблокировали!\nПричина: %s", req.Reason)
-
 		if req.Duration != "" {
 			duration, err := parseCustomDuration(req.Duration)
 			if err != nil {
 				writeJSON(w, http.StatusBadRequest, map[string]string{"message": "Invalid duration format"})
 				return
 			}
-			msgText += fmt.Sprintf("\nСрок: %s", req.Duration)
 			models.BanUser(db.DB, user.ID, duration, req.Reason)
 		} else {
 			models.BanUserForever(db.DB, user.ID, req.Reason)
 		}
-
+		if err := db.DB.Preload("Bans").First(&user, userID).Error; err != nil {
+			writeJSON(w, http.StatusNotFound, map[string]string{"message": "User not found"})
+			return
+		}
+		msgText := fmt.Sprintf("%s\nПричина: %s", utilits.FormatBanMessage(user), req.Reason)
 		utilits.CheckAndKickUserFromChannel(user.TelegramID)
 		utilits.SendMessageToUser(msgText, int64(user.TelegramID))
+
 		writeJSON(w, http.StatusOK, map[string]string{"message": "User banned successfully"})
 	})
 
@@ -307,7 +309,7 @@ func BanRoutes(r chi.Router) {
 			writeJSON(w, http.StatusInternalServerError, map[string]string{"message": "Failed to unban user"})
 			return
 		}
-		utilits.SendMessageToUser("✅Вас разблокировали!", int64(user.TelegramID))
+		utilits.SendMessageToUser("✅ Вас разблокировали!", int64(user.TelegramID))
 
 		writeJSON(w, http.StatusOK, map[string]string{"message": "User unbanned successfully"})
 	})

@@ -115,7 +115,7 @@ func HandleDoPayment(update *tgbotapi.Update, ctx *context.Context) {
 			msg := tgbotapi.NewEditMessageTextAndMarkup(
 				userID,
 				state.MessageID,
-				"2️⃣ Укажите сумму, которую вы хотите перевести.\n\n💰 <i>Пример:</i> 500.00\n\n✍️ Пожалуйста, введите сумму перевода.",
+				"2️⃣ Укажите сумму, которую вы хотите перевести.\n\n💰 <i>Пример:</i> 500\n\n✍️ Пожалуйста, введите сумму перевода.",
 				tgbotapi.NewInlineKeyboardMarkup(rows...),
 			)
 			msg.ParseMode = "HTML"
@@ -131,7 +131,7 @@ func HandleDoPayment(update *tgbotapi.Update, ctx *context.Context) {
 				msg := tgbotapi.NewEditMessageTextAndMarkup(
 					userID,
 					state.MessageID,
-					"⚠️ Пожалуйста, укажите корректную сумму (например, 500.00).",
+					"⚠️ Пожалуйста, укажите корректную сумму (например, 500).",
 					tgbotapi.NewInlineKeyboardMarkup(rows...),
 				)
 				msg.ParseMode = "HTML"
