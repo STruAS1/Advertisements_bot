@@ -42,7 +42,7 @@ func StartBot(cfg *config.Config) {
 		if update.Message != nil && update.Message.Chat.ID == cfg.Bot.CommentChatId && update.Message.Text != "" {
 			if update.Message.ReplyToMessage != nil {
 				originalMessageID := update.Message.ReplyToMessage.MessageID
-
+				fmt.Print(originalMessageID)
 				var Ad models.Advertisement
 				result := db.DB.Preload("User").Where(&models.Advertisement{CommentMsgId: originalMessageID}).First(&Ad)
 				if result.Error != nil {
