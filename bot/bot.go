@@ -46,7 +46,7 @@ func StartBot(cfg *config.Config) {
 				var Ad models.Advertisement
 				result := db.DB.Preload("User").Where(&models.Advertisement{CommentMsgId: originalMessageID}).First(&Ad)
 				if result.Error == nil {
-					msg := tgbotapi.NewMessage(int64(Ad.User.TelegramID), fmt.Sprintf("❗Новый комментарий:\n%s\n\n<b><a href='https://t.me/%s/%d>Объявление</a></b>", update.Message.Text, strings.TrimPrefix(cfg.Bot.ChannelId, "@"), Ad.MassgeID))
+					msg := tgbotapi.NewMessage(int64(Ad.User.TelegramID), fmt.Sprintf("❗Новый комментарий:\n%s\n\n<a href='https://t.me/%s/%d>Объявление</a>", update.Message.Text, strings.TrimPrefix(cfg.Bot.ChannelId, "@"), Ad.MassgeID))
 					msg.DisableWebPagePreview = true
 					msg.ParseMode = "HTML"
 					if _, err := botAPI.Send(msg); err != nil {
