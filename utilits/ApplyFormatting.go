@@ -59,13 +59,13 @@ func FormatBanMessage(user models.User) string {
 	return fmt.Sprintf("⛔ Вас заблокировали.\nРазблокировка через: %s.", strings.Join(timeParts, ", "))
 }
 
-func removeHTMLTags(input string) string {
+func RemoveHTMLTags(input string) string {
 	re := regexp.MustCompile(`<[^>]*>`)
 	return re.ReplaceAllString(input, "")
 }
 
 func ApplyFormatting(text string, entities []tgbotapi.MessageEntity) string {
-	text = removeHTMLTags(text)
+	text = RemoveHTMLTags(text)
 
 	var formattedText strings.Builder
 	entityMap := make(map[int][]tgbotapi.MessageEntity)

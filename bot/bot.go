@@ -26,6 +26,16 @@ func StartBot(cfg *config.Config) {
 		if update.Message == nil && update.CallbackQuery == nil {
 			continue
 		}
+		if update.Message != nil && update.Message.SenderChat != nil {
+
+			if update.Message != nil && update.Message.SenderChat != nil {
+				if update.Message.Chat.ID == cfg.Bot.CommentChatId && update.Message.SenderChat.UserName == cfg.Bot.ChannelId {
+					config.LastUpdateFromChannel = &update
+					continue
+				}
+			}
+		}
+
 		if (update.Message != nil && update.Message.Chat.Type == "private") || (update.CallbackQuery != nil && update.CallbackQuery.Message.Chat.Type == "private") {
 			handlers.HandleUpdate(&update, ctx)
 		}

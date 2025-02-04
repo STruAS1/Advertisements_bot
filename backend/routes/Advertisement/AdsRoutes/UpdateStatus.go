@@ -48,12 +48,13 @@ func UpdateStatus(r chi.Router) {
 			}
 			msgText += "\n\n👉 <b><a href='https://t.me/\u200B" + AD.User.Username + "'>Написать автору</a></b>"
 			msgText += "\n\n" + config.GlobalSettings.Ads.Sufix
-			msgId := utilits.SendMessageToChnale(msgText, AD.ImageID)
+			msgId, secondmsgId := utilits.SendMessageToChnale(msgText, AD.ImageID)
 			if err := db.DB.Model(&models.Advertisement{}).
 				Where("id = ?", uint(ID)).
 				Updates(map[string]interface{}{
-					"status":    UpdateStatus.Status,
-					"massge_id": msgId,
+					"status":         UpdateStatus.Status,
+					"massge_id":      msgId,
+					"comment_msg_id": secondmsgId,
 				}).Error; err != nil {
 				http.Error(w, "Failed to update record", http.StatusInternalServerError)
 				return
@@ -197,12 +198,13 @@ func UpdateStatus(r chi.Router) {
 		}
 		msgText += "\n\n👉<b><a href='https://t.me/" + AD.User.Username + "'>Написать автору</a></b>👈"
 		msgText += "\n\n" + config.GlobalSettings.Ads.Sufix
-		msgId := utilits.SendMessageToChnale(msgText, AD.ImageID)
+		msgId, secondmsgId := utilits.SendMessageToChnale(msgText, AD.ImageID)
 		if err := db.DB.Model(&models.Advertisement{}).
 			Where("id = ?", uint(ID)).
 			Updates(map[string]interface{}{
 				"deleted_from_channel": false,
 				"massge_id":            msgId,
+				"comment_msg_id":       secondmsgId,
 			}).Error; err != nil {
 			http.Error(w, "Failed to update record", http.StatusInternalServerError)
 			return

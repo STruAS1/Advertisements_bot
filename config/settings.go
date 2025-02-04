@@ -3,6 +3,8 @@ package config
 import (
 	"encoding/gob"
 	"os"
+
+	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
 type Setings struct {
@@ -52,6 +54,8 @@ type Docs struct {
 }
 
 var GlobalSettings Setings
+
+var LastUpdateFromChannel *tgbotapi.Update
 
 func Save(setings Setings) {
 	GlobalSettings = setings

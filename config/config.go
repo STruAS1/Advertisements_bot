@@ -23,7 +23,7 @@ type BotConfig struct {
 	Token         string `yaml:"token"`
 	ChannelId     string `yaml:"channelId"`
 	BotUsername   string `yaml:"botUsername"`
-	CommentChatId string `yaml:"commentChatId"`
+	CommentChatId int64  `yaml:"commentChatId"`
 }
 
 func LoadConfig() *Config {

@@ -309,6 +309,7 @@ func BanRoutes(r chi.Router) {
 			writeJSON(w, http.StatusInternalServerError, map[string]string{"message": "Failed to unban user"})
 			return
 		}
+		utilits.UnbanUser(int64(user.TelegramID))
 		utilits.SendMessageToUser("✅ Вас разблокировали!", int64(user.TelegramID))
 
 		writeJSON(w, http.StatusOK, map[string]string{"message": "User unbanned successfully"})

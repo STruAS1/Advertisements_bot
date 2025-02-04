@@ -2,16 +2,19 @@ package utilits
 
 import (
 	"fmt"
+	"log"
 	"tgbotBARAHOLKA/config"
+	"time"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
-func SendMessageToChnale(message, photoUrl string) int {
+func SendMessageToChnale(message, photoUrl string) (int, int) {
 	cfg := config.LoadConfig()
 	botAPI, _ := tgbotapi.NewBotAPI(cfg.Bot.Token)
 	var ms tgbotapi.Message
 	var err error
+
 	if photoUrl != "" {
 		msg := tgbotapi.NewPhotoToChannel(cfg.Bot.ChannelId, tgbotapi.FileURL(photoUrl))
 		msg.Caption = message
@@ -27,7 +30,16 @@ func SendMessageToChnale(message, photoUrl string) int {
 	if err != nil {
 		fmt.Println(err)
 	}
-	return ms.MessageID
+	var commentID int
+	for i := 0; i < 10; i++ {
+		time.Sleep(1 * time.Second)
+		if config.LastUpdateFromChannel != nil && config.LastUpdateFromChannel.Message != nil && config.LastUpdateFromChannel.Message.Text == RemoveHTMLTags(message) {
+			commentID = config.LastUpdateFromChannel.Message.MessageID
+			config.LastUpdateFromChannel = nil
+			break
+		}
+	}
+	return ms.MessageID, commentID
 }
 
 func SendMessageToUser(message string, userID int64) int {
@@ -89,4 +101,24 @@ func CheckAndKickUserFromChannel(userID int64) error {
 	}
 
 	return fmt.Errorf("пользователь уже состоит в канале")
+}
+
+func UnbanUser(userID int64) error {
+	cfg := config.LoadConfig()
+	botAPI, _ := tgbotapi.NewBotAPI(cfg.Bot.Token)
+	unban := tgbotapi.UnbanChatMemberConfig{
+		ChatMemberConfig: tgbotapi.ChatMemberConfig{
+			SuperGroupUsername: cfg.Bot.ChannelId,
+			UserID:             userID,
+		},
+		OnlyIfBanned: true,
+	}
+
+	_, err := botAPI.Request(unban)
+	if err != nil {
+		log.Printf("Ошибка при разбане пользователя %d: %v", userID, err)
+		return err
+	}
+
+	return nil
 }

@@ -464,11 +464,11 @@ func HandleSaveAds(update *tgbotapi.Update, ctx *context.Context) {
 		}
 		msgText += "\n\n👉<b><a href='https://t.me/" + User.Username + "'>Написать автору</a></b>👈"
 		msgText += "\n\n" + config.GlobalSettings.Ads.Sufix
-		msgId := utilits.SendMessageToChnale(msgText, photo.ID)
+		msgId, secondmsgId := utilits.SendMessageToChnale(msgText, photo.ID)
 		if photo.Activate {
-			db.DB.Save(&models.Advertisement{UserID: uint(User.ID), Text: messageText, ImageID: photo.ID, Status: 1, CostUser: CostUser, MassgeID: msgId})
+			db.DB.Save(&models.Advertisement{UserID: uint(User.ID), Text: messageText, ImageID: photo.ID, Status: 1, CostUser: CostUser, MassgeID: msgId, CommentMsgId: secondmsgId})
 		} else {
-			db.DB.Save(&models.Advertisement{UserID: uint(User.ID), Text: messageText, Status: 1, CostUser: CostUser, MassgeID: msgId})
+			db.DB.Save(&models.Advertisement{UserID: uint(User.ID), Text: messageText, Status: 1, CostUser: CostUser, MassgeID: msgId, CommentMsgId: secondmsgId})
 		}
 
 	}

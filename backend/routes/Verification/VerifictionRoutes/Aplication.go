@@ -132,6 +132,18 @@ func Aplications(r chi.Router) {
 			http.Error(w, "Invalid ID: must be a positive integer", http.StatusBadRequest)
 			return
 		}
+		var Aplication models.VerificationAplication
+		db.DB.Where(&models.VerificationAplication{ID: uint(ID)}).Find(&Aplication)
+		if err := db.DB.Model(&models.User{}).
+			Where("id = ?", uint(Aplication.UserID)).
+			Updates(map[string]interface{}{
+				"verification": false,
+			}).Error; err != nil {
+			WriteJSON(w, http.StatusInternalServerError, ErrorResponse{
+				Message: "Failed to update record",
+			})
+			return
+		}
 		db.DB.Delete(&models.VerificationAplication{}, ID)
 		WriteJSON(w, http.StatusOK, map[string]string{
 			"message": "Ok",
