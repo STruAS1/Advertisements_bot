@@ -29,6 +29,8 @@ func StartBot(cfg *config.Config) {
 		if update.Message != nil && update.Message.SenderChat != nil {
 
 			if update.Message != nil && update.Message.SenderChat != nil {
+				log.Println(update.Message.Chat.ID)
+				log.Println(update.Message.SenderChat.UserName)
 				if update.Message.Chat.ID == cfg.Bot.CommentChatId && update.Message.SenderChat.UserName == cfg.Bot.ChannelId {
 					config.LastUpdateFromChannel = &update
 					continue
