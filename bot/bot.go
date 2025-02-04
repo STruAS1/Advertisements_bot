@@ -35,10 +35,6 @@ func StartBot(cfg *config.Config) {
 				}
 			}
 		}
-		if update.Message != nil {
-			log.Println(update.Message.Chat.ID)
-			continue
-		}
 		if (update.Message != nil && update.Message.Chat.Type == "private") || (update.CallbackQuery != nil && update.CallbackQuery.Message.Chat.Type == "private") {
 			handlers.HandleUpdate(&update, ctx)
 		}
