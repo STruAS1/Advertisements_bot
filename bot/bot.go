@@ -47,7 +47,9 @@ func StartBot(cfg *config.Config) {
 				result := db.DB.Preload("User").Where(&models.Advertisement{CommentMsgId: originalMessageID}).First(&Ad)
 				if result.Error != nil {
 					msg := tgbotapi.NewMessage(int64(Ad.User.TelegramID), fmt.Sprintf("❗Новый комментарий:\n%s\n\n<a href='https://t.me/\u200B%s/%d>Объявление</a>", update.Message.Text, cfg.Bot.ChannelId, Ad.MassgeID))
-					botAPI.Send(msg)
+					if _, err := botAPI.Send(msg); err != nil {
+						fmt.Println(err)
+					}
 				}
 			}
 		}
