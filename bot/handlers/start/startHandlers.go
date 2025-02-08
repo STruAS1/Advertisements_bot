@@ -54,8 +54,8 @@ func handleLvl4(update *tgbotapi.Update, ctx *context.Context, userID int64) {
 			state.Data["CityTitle"] = ActiveChooseCity.CitiesPages[uint(pageID)].Cities[cytyArrayID].Title
 			delete(state.Data, "ActiveChooseCity")
 			var user models.User
-			result := db.DB.Preload("Bans").Where("telegram_id = ?", userID).First(&user)
-			if result == nil {
+			result := db.DB.Where("telegram_id = ?", userID).First(&user)
+			if result.Error == nil {
 				if err := db.DB.Model(&models.User{}).
 					Where("id = ?", uint(user.ID)).
 					Updates(map[string]interface{}{
