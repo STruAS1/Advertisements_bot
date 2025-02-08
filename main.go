@@ -24,6 +24,27 @@ func main() {
 		decoder := gob.NewDecoder(file)
 		_ = decoder.Decode(&config.GlobalSettings)
 	}
+	setting := config.GlobalSettings
+	setting.Buttons = [17]config.Button{
+		{ButtonText: "Объявление", Discription: "Объявление"},
+		{ButtonText: "Обучение", Discription: "Обучение"},
+		{ButtonText: "Профиль", Discription: "Профиль"},
+		{ButtonText: "Подписаться на канал", Discription: "Подписаться на канал"},
+		{ButtonText: "Подписался", Discription: "Подписался"},
+		{ButtonText: "« Назад", Discription: "Кнопка назад"},
+		{ButtonText: "Пополнить баланс", Discription: "Пополнить баланс"},
+		{ButtonText: "Перевести средства", Discription: "Перевести средства"},
+		{ButtonText: "Добавить объявление", Discription: "Добавить объявление"},
+		{ButtonText: "Мои объявления", Discription: "Мои объявления"},
+		{ButtonText: "Пред просмотр", Discription: "Пред просмотр"},
+		{ButtonText: "Сохранить", Discription: "Сохранить"},
+		{ButtonText: "🗑️ Удалить", Discription: "🗑️ Удалить"},
+		{ButtonText: "✏️ Редактировать", Discription: "✏️ Редактировать"},
+		{ButtonText: "🚫 Отмена ", Discription: "✏️ Редактировать"},
+		{ButtonText: "📋 Сохранить", Discription: "📋 Сохранить"},
+		{ButtonText: "Изменить город", Discription: "Изменить город"},
+	}
+	config.Save(setting)
 	file.Close()
 	db.Connect(cfg)
 	go backend.StartBackend()
