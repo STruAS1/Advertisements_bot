@@ -64,6 +64,7 @@ func handleLvl4(update *tgbotapi.Update, ctx *context.Context, userID int64) {
 					return
 				}
 				HandleStartCommand(update, ctx)
+				return
 			} else {
 				channelUsername := ctx.Config.Bot.ChannelId
 				channelUsername = strings.TrimPrefix(channelUsername, "@")
