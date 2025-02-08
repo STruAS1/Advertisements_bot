@@ -16,5 +16,6 @@ func RegisterAdsRoutes(r chi.Router) {
 		globalsetingsroutes.CostLimit(r)
 		globalsetingsroutes.Buttons(r)
 		globalsetingsroutes.AllowedDomines(r)
+		globalsetingsroutes.VerificationCost(r)
 	})
 }

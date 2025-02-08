@@ -36,3 +36,28 @@ func CostLimit(r chi.Router) {
 		})
 	})
 }
+
+func VerificationCost(r chi.Router) {
+	r.Get("/VerificationCost", func(w http.ResponseWriter, r *http.Request) {
+		writeJSON(w, http.StatusOK, SuccessResponse{
+			Message: "ok",
+			Data: map[string]uint{
+				"CostLimit": config.GlobalSettings.VerificationCost,
+			},
+		})
+	})
+	r.Put("/VerificationCost", func(w http.ResponseWriter, r *http.Request) {
+		var CostLimit CostLimitRequest
+		if err := json.NewDecoder(r.Body).Decode(&CostLimit); err != nil {
+			http.Error(w, "Invalid JSON", http.StatusBadRequest)
+			return
+		}
+		setings := config.GlobalSettings
+
+		setings.VerificationCost = CostLimit.CostLimit
+		config.Save(setings)
+		writeJSON(w, http.StatusOK, map[string]string{
+			"message": "Ok",
+		})
+	})
+}
