@@ -73,6 +73,7 @@ func HandleProfile(update *tgbotapi.Update, ctx *context.Context) {
 	rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(config.GlobalSettings.Buttons[6].ButtonText, "+balance")))
 	rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(config.GlobalSettings.Buttons[7].ButtonText, "Transfer")))
 	rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(config.GlobalSettings.Buttons[5].ButtonText, "StartMenu")))
+	rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(config.GlobalSettings.Buttons[16].ButtonText, "ChooseCity")))
 	msg := tgbotapi.NewEditMessageTextAndMarkup(
 		userID,
 		state.MessageID,
@@ -126,7 +127,7 @@ func HandlePaymentEntryAmount(update *tgbotapi.Update, ctx *context.Context) {
 	msg := tgbotapi.NewEditMessageTextAndMarkup(
 		userID,
 		state.MessageID,
-		"Введите сумму",
+		"Введите желаемую сумму пополнения баланса",
 		tgbotapi.NewInlineKeyboardMarkup(rows...),
 	)
 	msg.ParseMode = "HTML"

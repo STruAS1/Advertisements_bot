@@ -2,7 +2,6 @@ package start
 
 import (
 	"log"
-	"strconv"
 	"tgbotBARAHOLKA/bot/context"
 	"tgbotBARAHOLKA/config"
 	"tgbotBARAHOLKA/db"
@@ -73,28 +72,6 @@ func HandleStartCommand(update *tgbotapi.Update, ctx *context.Context) {
 	context.UpdateUserLevel(userID, ctx, 1)
 	ctx.SendMessage(msg)
 }
-func HandleVerificationRequest(update *tgbotapi.Update, ctx *context.Context) {
-	userID := update.CallbackQuery.From.ID
-	state := context.GetUserState(userID, ctx)
-	context.UpdateUserLevel(userID, ctx, 0)
-	CallBack := "Verification_" + strconv.Itoa(int(state.MessageID))
-	verSufix := " (" + strconv.Itoa(int(config.GlobalSettings.VerificationCost)) + "₩)"
-	inlineKeyboard := tgbotapi.NewInlineKeyboardMarkup(
-		[]tgbotapi.InlineKeyboardButton{
-			tgbotapi.NewInlineKeyboardButtonData("Верификация"+verSufix, CallBack),
-		},
-		[]tgbotapi.InlineKeyboardButton{
-			tgbotapi.NewInlineKeyboardButtonData("Пропустить", "StartMenu"),
-		},
-	)
-	msg := tgbotapi.NewEditMessageTextAndMarkup(
-		userID,
-		state.MessageID,
-		"Пройти верификацию",
-		inlineKeyboard,
-	)
-	ctx.BotAPI.Send(msg)
-}
 
 func HandlePhoneNumberRequest(update *tgbotapi.Update, ctx *context.Context) {
 	userID := update.Message.Chat.ID
@@ -114,7 +91,7 @@ func HandlePhoneNumberRequest(update *tgbotapi.Update, ctx *context.Context) {
 				tgbotapi.NewInlineKeyboardButtonData("Выбрать город", "ChooseCity"),
 			},
 		)
-		msg := tgbotapi.NewMessage(userID, "Для завершения регистрации, выберите город из списка")
+		msg := tgbotapi.NewMessage(userID, "Для завершения регистрации, пожалуйста, выберите Ваш город проживания")
 		msg.ReplyMarkup = inlineKeyboard
 		deleteMsg := tgbotapi.DeleteMessageConfig{
 			ChatID:    userID,
@@ -184,7 +161,7 @@ func HandleSubscriptionCheck(update *tgbotapi.Update, ctx *context.Context) {
 		delete(state.Data, "phone_number")
 		delete(state.Data, "CityTitle")
 		context.UpdateUserLevel(userID, ctx, 0)
-		HandleVerificationRequest(update, ctx)
+		HandleStartCommand(update, ctx)
 	} else {
 		alert := tgbotapi.NewCallbackWithAlert(update.CallbackQuery.ID, "❌")
 		alert.ShowAlert = false

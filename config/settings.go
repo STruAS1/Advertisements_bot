@@ -13,7 +13,7 @@ type Setings struct {
 	City             City
 	Payments         PaymentsSetings
 	Docs             []Docs
-	Buttons          [16]Button
+	Buttons          [17]Button
 	WitheListDomines []string
 	VerificationCost uint
 }
@@ -90,7 +90,7 @@ func CreateDefaultSettings() {
 			ButtonName: "Обучение",
 			Text:       "Обучение",
 		}},
-		Buttons: [16]Button{
+		Buttons: [17]Button{
 			{ButtonText: "Объявление", Discription: "Объявление"},
 			{ButtonText: "Обучение", Discription: "Обучение"},
 			{ButtonText: "Профиль", Discription: "Профиль"},
@@ -107,6 +107,7 @@ func CreateDefaultSettings() {
 			{ButtonText: "✏️ Редактировать", Discription: "✏️ Редактировать"},
 			{ButtonText: "🚫 Отмена ", Discription: "✏️ Редактировать"},
 			{ButtonText: "📋 Сохранить", Discription: "📋 Сохранить"},
+			{ButtonText: "Изменить город", Discription: "Изменить город"},
 		},
 		WitheListDomines: []string{
 			"youtube.com",

@@ -5,6 +5,8 @@ import (
 	"strings"
 	"tgbotBARAHOLKA/bot/context"
 	"tgbotBARAHOLKA/config"
+	"tgbotBARAHOLKA/db"
+	"tgbotBARAHOLKA/db/models"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
@@ -51,27 +53,40 @@ func handleLvl4(update *tgbotapi.Update, ctx *context.Context, userID int64) {
 			ActiveChooseCity, _ := state.Data["ActiveChooseCity"].(ActiveChooseCityType)
 			state.Data["CityTitle"] = ActiveChooseCity.CitiesPages[uint(pageID)].Cities[cytyArrayID].Title
 			delete(state.Data, "ActiveChooseCity")
-			channelUsername := ctx.Config.Bot.ChannelId
-			channelUsername = strings.TrimPrefix(channelUsername, "@")
-			url := "https://t.me/" + channelUsername
+			var user models.User
+			result := db.DB.Preload("Bans").Where("telegram_id = ?", userID).First(&user)
+			if result == nil {
+				if err := db.DB.Model(&models.User{}).
+					Where("id = ?", uint(user.ID)).
+					Updates(map[string]interface{}{
+						"city": state.Data["CityTitle"].(string),
+					}).Error; err != nil {
+					return
+				}
+				HandleStartCommand(update, ctx)
+			} else {
+				channelUsername := ctx.Config.Bot.ChannelId
+				channelUsername = strings.TrimPrefix(channelUsername, "@")
+				url := "https://t.me/" + channelUsername
 
-			inlineKeyboard := tgbotapi.NewInlineKeyboardMarkup(
-				[]tgbotapi.InlineKeyboardButton{
-					tgbotapi.NewInlineKeyboardButtonURL(config.GlobalSettings.Buttons[3].ButtonText, url),
-				},
-				[]tgbotapi.InlineKeyboardButton{
-					tgbotapi.NewInlineKeyboardButtonData(config.GlobalSettings.Buttons[4].ButtonText, "Chek_sub"),
-				},
-			)
-			msg := tgbotapi.NewMessage(userID, "Для завершения регистрации, пожалуйста, подпишитесь на канал.")
-			msg.ReplyMarkup = inlineKeyboard
-			deleteMsg := tgbotapi.DeleteMessageConfig{
-				ChatID:    userID,
-				MessageID: state.MessageID,
+				inlineKeyboard := tgbotapi.NewInlineKeyboardMarkup(
+					[]tgbotapi.InlineKeyboardButton{
+						tgbotapi.NewInlineKeyboardButtonURL(config.GlobalSettings.Buttons[3].ButtonText, url),
+					},
+					[]tgbotapi.InlineKeyboardButton{
+						tgbotapi.NewInlineKeyboardButtonData(config.GlobalSettings.Buttons[4].ButtonText, "Chek_sub"),
+					},
+				)
+				msg := tgbotapi.NewMessage(userID, "Для завершения регистрации, пожалуйста, подпишитесь на канал.")
+				msg.ReplyMarkup = inlineKeyboard
+				deleteMsg := tgbotapi.DeleteMessageConfig{
+					ChatID:    userID,
+					MessageID: state.MessageID,
+				}
+				ctx.BotAPI.Send(deleteMsg)
+				ctx.SendMessage(msg)
+				context.UpdateUserLevel(userID, ctx, 2)
 			}
-			ctx.BotAPI.Send(deleteMsg)
-			ctx.SendMessage(msg)
-			context.UpdateUserLevel(userID, ctx, 2)
 		default:
 			ChooseCityHandler(update, ctx)
 		}

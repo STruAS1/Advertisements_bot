@@ -179,17 +179,6 @@ func Aplications(r chi.Router) {
 				})
 				return
 			}
-			if err := db.DB.Model(&models.User{}).
-				Where("id = ?", uint(Aplication.UserID)).
-				Updates(map[string]interface{}{
-					"verification": true,
-					"balance":      Aplication.User.Balance - config.GlobalSettings.VerificationCost,
-				}).Error; err != nil {
-				WriteJSON(w, http.StatusInternalServerError, ErrorResponse{
-					Message: "Failed to update record",
-				})
-				return
-			}
 			text := "✅ Ваша заявка на верификацию успешно подтверждена!"
 			if UpdateStatus.Msg != "" {
 				text += fmt.Sprintf("\n\n%s", UpdateStatus.Msg)
@@ -203,6 +192,17 @@ func Aplications(r chi.Router) {
 				Where("id = ?", uint(ID)).
 				Updates(map[string]interface{}{
 					"status": UpdateStatus.Status,
+				}).Error; err != nil {
+				WriteJSON(w, http.StatusInternalServerError, ErrorResponse{
+					Message: "Failed to update record",
+				})
+				return
+			}
+			if err := db.DB.Model(&models.User{}).
+				Where("id = ?", uint(Aplication.UserID)).
+				Updates(map[string]interface{}{
+					"verification": true,
+					"balance":      Aplication.User.Balance + config.GlobalSettings.VerificationCost,
 				}).Error; err != nil {
 				WriteJSON(w, http.StatusInternalServerError, ErrorResponse{
 					Message: "Failed to update record",

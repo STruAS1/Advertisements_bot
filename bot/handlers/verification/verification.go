@@ -3,6 +3,7 @@ package verification
 import (
 	"strings"
 	"tgbotBARAHOLKA/bot/context"
+	"tgbotBARAHOLKA/config"
 	"tgbotBARAHOLKA/db"
 	"tgbotBARAHOLKA/db/models"
 
@@ -47,6 +48,8 @@ func HandleVerification(update *tgbotapi.Update, ctx *context.Context) {
 	var userID int64
 	var value string
 	var photoID string
+	var user models.User
+	db.DB.Where("telegram_id = ?", userID).First(&user)
 	if update.Message != nil {
 		userID = update.Message.Chat.ID
 		deleteMsg1 := tgbotapi.DeleteMessageConfig{
@@ -76,6 +79,16 @@ func HandleVerification(update *tgbotapi.Update, ctx *context.Context) {
 	switch verification.ActiveStep {
 	case 0:
 		if update.CallbackQuery != nil && strings.Split(update.CallbackQuery.Data, "_")[0] == "Verification" {
+			if user.Balance < config.GlobalSettings.VerificationCost {
+				rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("🚫 Отмена", "back")))
+				msg := tgbotapi.NewEditMessageTextAndMarkup(
+					userID,
+					state.MessageID,
+					"Недостаточно средств",
+					tgbotapi.NewInlineKeyboardMarkup(rows...),
+				)
+				ctx.BotAPI.Send(msg)
+			}
 			verification.ActiveStep++
 			rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("🚫 Отмена", "back")))
 			msg := tgbotapi.NewEditMessageTextAndMarkup(
@@ -104,7 +117,7 @@ func HandleVerification(update *tgbotapi.Update, ctx *context.Context) {
 			msg := tgbotapi.NewEditMessageTextAndMarkup(
 				userID,
 				state.MessageID,
-				"2️⃣ Укажите тип визы или статус пребывания\n\n🌍 <i>Пример:</i> Карта резидента\n\n🔑 Напишите ваш текущий тип визы или статус.",
+				"2️⃣ Укажите тип визы или статус пребывания\n\n🌍 <i>Пример:</i> Гражданство Кореи, F-5 (ВНЖ), F-4, F-6, F-2, F-1...\n\n🔑 Напишите ваш текущий тип визы или статус.",
 				tgbotapi.NewInlineKeyboardMarkup(rows...),
 			)
 			msg.ParseMode = "HTML"
@@ -193,8 +206,14 @@ func HandleVerification(update *tgbotapi.Update, ctx *context.Context) {
 		}
 		delete(state.Data, "verification")
 		HandleBackToStartMenu(ctx, userID)
-		var user models.User
-		db.DB.Where("telegram_id = ?", userID).First(&user)
+		if err := db.DB.Model(&models.User{}).
+			Where("id = ?", uint(user.ID)).
+			Updates(map[string]interface{}{
+				"verification": true,
+				"balance":      user.Balance - config.GlobalSettings.VerificationCost,
+			}).Error; err != nil {
+			return
+		}
 		NewAplication := models.VerificationAplication{
 			UserID:         user.ID,
 			FirstName:      verification.Data.FIO.FirstName,

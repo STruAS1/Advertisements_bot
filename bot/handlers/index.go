@@ -58,6 +58,9 @@ func HandleUpdate(update *tgbotapi.Update, ctx *context.Context) {
 			case "StartMenu":
 				context.UpdateUserName(userId, ctx, "start")
 				start.HandleStartCommand(update, ctx)
+			case "ChooseCity":
+				context.UpdateUserName(userId, ctx, "start")
+				start.ChooseCityHandler(update, ctx)
 			case "AddAds":
 				ads.HandleSelectADS(update, ctx)
 			case "AdsHistory":
