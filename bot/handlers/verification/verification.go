@@ -49,7 +49,6 @@ func HandleVerification(update *tgbotapi.Update, ctx *context.Context) {
 	var value string
 	var photoID string
 	var user models.User
-	db.DB.Where("telegram_id = ?", userID).First(&user)
 	if update.Message != nil {
 		userID = update.Message.Chat.ID
 		deleteMsg1 := tgbotapi.DeleteMessageConfig{
@@ -68,7 +67,7 @@ func HandleVerification(update *tgbotapi.Update, ctx *context.Context) {
 
 	state := context.GetUserState(userID, ctx)
 	context.UpdateUserLevel(userID, ctx, 1)
-
+	db.DB.Where("telegram_id = ?", userID).First(&user)
 	var rows [][]tgbotapi.InlineKeyboardButton
 	verification, exist := state.Data["verification"].(verificationType)
 	if !exist {
