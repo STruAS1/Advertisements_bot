@@ -88,6 +88,7 @@ func HandleVerification(update *tgbotapi.Update, ctx *context.Context) {
 					tgbotapi.NewInlineKeyboardMarkup(rows...),
 				)
 				ctx.BotAPI.Send(msg)
+				return
 			}
 			verification.ActiveStep++
 			rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("🚫 Отмена", "back")))
