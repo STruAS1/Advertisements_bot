@@ -2,6 +2,7 @@ package verification
 
 import (
 	"tgbotBARAHOLKA/bot/context"
+	"tgbotBARAHOLKA/bot/handlers/start"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
@@ -19,7 +20,7 @@ func handleLvl1(update *tgbotapi.Update, ctx *context.Context, userID int64) {
 	if update.CallbackQuery != nil {
 		switch update.CallbackQuery.Data {
 		case "back":
-			HandleBackToStartMenu(ctx, userID)
+			start.HandleStartCommand(update, ctx)
 		default:
 			HandleVerification(update, ctx)
 		}
