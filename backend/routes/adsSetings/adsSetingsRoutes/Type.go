@@ -11,12 +11,16 @@ import (
 )
 
 type TypeRequest struct {
-	IsFree   bool   `json:"IsFree"`
-	Cost     uint   `json:"Cost"`
-	Name     string `json:"Name"`
-	Priority uint   `json:"priority"`
-	AutoPost bool   `json:"AutoPost"`
-	HasLimit bool   `json:"HasLimit"`
+	IsFree                    bool   `json:"IsFree"`
+	Cost                      uint   `json:"Cost"`
+	Name                      string `json:"Name"`
+	Priority                  uint   `json:"priority"`
+	AutoPost                  bool   `json:"AutoPost"`
+	HasLimit                  bool   `json:"HasLimit"`
+	DayLimit                  uint   `json:"DayLimit"`
+	DayLimitWithVerification  uint   `json:"DayLimitWithVerification"`
+	HourLimit                 uint   `json:"HourLimit"`
+	HourLimitWithVerification uint   `json:"HourLimitWithVerification"`
 }
 type SuccessResponse struct {
 	Message string      `json:"message"`
@@ -74,12 +78,16 @@ func Type(r chi.Router) {
 		if err := db.DB.Model(&models.AdvertisementType{}).
 			Where("id = ?", uint(id)).
 			Updates(map[string]interface{}{
-				"is_free":   updateData.IsFree,
-				"name":      updateData.Name,
-				"Cost":      updateData.Cost,
-				"priority":  updateData.Priority,
-				"auto_post": updateData.AutoPost,
-				"has_limit": updateData.HasLimit,
+				"is_free":                      updateData.IsFree,
+				"name":                         updateData.Name,
+				"Cost":                         updateData.Cost,
+				"priority":                     updateData.Priority,
+				"auto_post":                    updateData.AutoPost,
+				"has_limit":                    updateData.HasLimit,
+				"day_limit":                    updateData.DayLimit,
+				"day_limit_with_verification":  updateData.DayLimitWithVerification,
+				"hour_limit":                   updateData.HourLimit,
+				"hour_limit_with_verification": updateData.HourLimitWithVerification,
 			}).Error; err != nil {
 			writeJSON(w, http.StatusInternalServerError, ErrorResponse{
 				Message: "Failed to update record",
@@ -126,12 +134,16 @@ func Type(r chi.Router) {
 			})
 		}
 		newType := models.AdvertisementType{
-			IsFree:   createData.IsFree,
-			Name:     createData.Name,
-			Cost:     createData.Cost,
-			Priority: createData.Priority,
-			AutoPost: createData.AutoPost,
-			HasLimit: createData.HasLimit,
+			IsFree:                    createData.IsFree,
+			Name:                      createData.Name,
+			Cost:                      createData.Cost,
+			Priority:                  createData.Priority,
+			AutoPost:                  createData.AutoPost,
+			HasLimit:                  createData.HasLimit,
+			DayLimit:                  createData.DayLimit,
+			DayLimitWithVerification:  createData.DayLimitWithVerification,
+			HourLimit:                 createData.HourLimit,
+			HourLimitWithVerification: createData.HourLimitWithVerification,
 		}
 
 		if err := db.DB.Create(&newType).Error; err != nil {

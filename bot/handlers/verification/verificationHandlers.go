@@ -11,12 +11,12 @@ func Handle(update *tgbotapi.Update, ctx *context.Context, userID int64) {
 	state := context.GetUserState(userID, ctx)
 	switch state.Level {
 	case 1:
-		handleLvl1(update, ctx, userID)
+		handleLvl1(update, ctx)
 	}
 
 }
 
-func handleLvl1(update *tgbotapi.Update, ctx *context.Context, userID int64) {
+func handleLvl1(update *tgbotapi.Update, ctx *context.Context) {
 	if update.CallbackQuery != nil {
 		switch update.CallbackQuery.Data {
 		case "back":

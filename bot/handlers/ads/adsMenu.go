@@ -241,34 +241,55 @@ func HandleAddAds(update *tgbotapi.Update, ctx *context.Context, typeID string, 
 				return
 			}
 		} else if !skipTimer {
-			var Ad models.Advertisement
+			if Type.HasLimit {
+				var FirstAd models.Advertisement
+				var LastAd models.Advertisement
+				var countOfAdsForDay int64
+				DayAgo := time.Now().Add(-24 * time.Hour)
+				db.DB.Model(&models.Advertisement{}).
+					Where("user_id = ? AND status IN (?) AND created_at >= ? AND type = ?", User.ID, []uint8{0, 1}, DayAgo, typeID).Count(&countOfAdsForDay)
+				db.DB.Model(&models.Advertisement{}).
+					Where("user_id = ? AND status IN (?) AND created_at >= ? AND type = ?", User.ID, []uint8{0, 1}, DayAgo, typeID).Order("created_at ASC").First(&FirstAd)
+				db.DB.Model(&models.Advertisement{}).
+					Where("user_id = ? AND status IN (?) AND created_at >= ? AND type = ?", User.ID, []uint8{0, 1}, DayAgo, typeID).Order("created_at DESC").First(&LastAd)
+				var remainingTime time.Duration
+				if User.Verification {
+					if countOfAdsForDay >= int64(Type.DayLimitWithVerification) {
+						timeLimit := 24 * time.Hour
+						remainingTime = timeLimit - time.Since(FirstAd.CreatedAt)
+					} else {
+						timeLimit := time.Duration(Type.HourLimitWithVerification) * time.Hour
+						remainingTime = timeLimit - time.Since(LastAd.CreatedAt)
+					}
+				} else {
+					if countOfAdsForDay >= int64(Type.DayLimit) {
+						timeLimit := 24 * time.Hour
+						remainingTime = timeLimit - time.Since(FirstAd.CreatedAt)
+					} else {
+						timeLimit := time.Duration(Type.HourLimit) * time.Hour
+						remainingTime = timeLimit - time.Since(LastAd.CreatedAt)
+					}
+				}
+				if remainingTime > 0 {
+					context.UpdateUserLevel(userID, ctx, 10)
+					hours := int(remainingTime.Hours())
+					minutes := int(remainingTime.Minutes()) % 60
+					message := fmt.Sprintf("Вы сможете создать новое бесплатное объявление через %d ч %d м.", hours, minutes)
+					cost := " (" + strconv.Itoa(int(config.GlobalSettings.Ads.CostLimit)) + " ₩)"
+					rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("Купить"+cost, "buy_"+typeID)))
+					rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(config.GlobalSettings.Buttons[5].ButtonText, "back")))
+					msg := tgbotapi.NewEditMessageTextAndMarkup(
+						update.CallbackQuery.Message.Chat.ID,
+						state.MessageID,
+						message,
+						tgbotapi.NewInlineKeyboardMarkup(rows...),
+					)
 
-			threeHoursAgo := time.Now().Add(-3 * time.Hour)
-			db.DB.Model(&models.Advertisement{}).
-				Where("user_id = ? AND status IN (?) AND created_at >= ?", User.ID, []uint8{0, 1}, threeHoursAgo).
-				First(&Ad)
-			timeLimit := 3 * time.Hour
-			remainingTime := timeLimit - time.Since(Ad.CreatedAt)
+					msg.ParseMode = "HTML"
+					ctx.BotAPI.Send(msg)
+					return
 
-			if remainingTime > 0 && Type.HasLimit {
-				context.UpdateUserLevel(userID, ctx, 10)
-				hours := int(remainingTime.Hours())
-				minutes := int(remainingTime.Minutes()) % 60
-				message := fmt.Sprintf("Вы сможете создать новое бесплатное объявление через %d часа %d минут.", hours, minutes)
-				cost := " (" + strconv.Itoa(int(config.GlobalSettings.Ads.CostLimit)) + " ₩)"
-				rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("Купить"+cost, "buy_"+typeID)))
-				rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(config.GlobalSettings.Buttons[5].ButtonText, "back")))
-				msg := tgbotapi.NewEditMessageTextAndMarkup(
-					update.CallbackQuery.Message.Chat.ID,
-					state.MessageID,
-					message,
-					tgbotapi.NewInlineKeyboardMarkup(rows...),
-				)
-
-				msg.ParseMode = "HTML"
-				ctx.BotAPI.Send(msg)
-				return
-
+				}
 			}
 		}
 		db.DB.Where(&models.AdvertisementInputs{TypeID: typeIDUint}).Order("priority asc").Find(&inputs)
@@ -466,9 +487,9 @@ func HandleSaveAds(update *tgbotapi.Update, ctx *context.Context) {
 		msgText += "\n\n" + config.GlobalSettings.Ads.Sufix
 		msgId, secondmsgId := utilits.SendMessageToChnale(msgText, photo.ID)
 		if photo.Activate {
-			db.DB.Save(&models.Advertisement{UserID: uint(User.ID), Text: messageText, ImageID: photo.ID, Status: 1, CostUser: CostUser, MassgeID: msgId, CommentMsgId: secondmsgId})
+			db.DB.Save(&models.Advertisement{UserID: uint(User.ID), Text: messageText, ImageID: photo.ID, Status: 1, CostUser: CostUser, MassgeID: msgId, CommentMsgId: secondmsgId, Type: typeID})
 		} else {
-			db.DB.Save(&models.Advertisement{UserID: uint(User.ID), Text: messageText, Status: 1, CostUser: CostUser, MassgeID: msgId, CommentMsgId: secondmsgId})
+			db.DB.Save(&models.Advertisement{UserID: uint(User.ID), Text: messageText, Status: 1, CostUser: CostUser, MassgeID: msgId, CommentMsgId: secondmsgId, Type: typeID})
 		}
 
 	}

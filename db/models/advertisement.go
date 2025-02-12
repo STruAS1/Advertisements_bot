@@ -10,6 +10,7 @@ type Advertisement struct {
 	ImageID            string `gorm:"size:255;default:''"`
 	DeletedFromChannel bool
 	CommentMsgId       int
+	Type               uint
 	MassgeID           int
 	Status             uint8
 	CostUser           uint
